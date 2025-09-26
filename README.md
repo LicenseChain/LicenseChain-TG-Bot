@@ -1,457 +1,440 @@
-# 🤖 LicenseChain Telegram Bot
+# LicenseChain Telegram Bot
 
-**Advanced Telegram integration for LicenseChain license management**
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-16+-green.svg)](https://nodejs.org/)
+[![Telegraf](https://img.shields.io/badge/Telegraf-4.0+-blue.svg)](https://telegraf.js.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.5+-blue.svg)](https://www.typescriptlang.org/)
 
-[![License](https://img.shields.io/badge/license-Elastic%202.0-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/node.js-18%2B-green.svg)](https://nodejs.org/)
-[![Telegram](https://img.shields.io/badge/telegram-bot-blue.svg)](https://core.telegram.org/bots)
+Official Telegram Bot for LicenseChain - License management and customer support through Telegram.
 
-## ✨ Features
+## 🚀 Features
 
-### 🔐 **License Management**
-- Validate license keys in real-time
-- View detailed license information
-- Create and manage licenses
-- Track license usage and analytics
-- License expiration monitoring
+- **🔐 License Management** - Validate, create, and manage licenses
+- **👤 User Support** - Handle customer inquiries and support tickets
+- **📊 Analytics** - View usage statistics and performance metrics
+- **🔔 Notifications** - Real-time license events and alerts
+- **🎫 Ticket System** - Create and manage support tickets
+- **📈 Reporting** - Generate reports and analytics
+- **🛡️ Security** - Secure authentication and authorization
+- **🛠️ Easy Setup** - Simple configuration and deployment
 
-### 📊 **Advanced Analytics**
-- Real-time usage statistics
-- Revenue tracking and reporting
-- User behavior analytics
-- Conversion rate monitoring
-- Custom dashboard metrics
+## 📦 Installation
 
-### 💬 **Telegram Integration**
-- Interactive commands and buttons
-- Rich text formatting with Markdown
-- Inline keyboards for easy navigation
-- Callback queries for dynamic interactions
-- Real-time notifications
+### Method 1: npm (Recommended)
 
-### 🔔 **Automation**
-- Scheduled license checks
-- Expiration notifications
-- Usage monitoring
-- Automated reports
-- Webhook integration
+```bash
+# Clone the repository
+git clone https://github.com/LicenseChain/LicenseChain-TG-Bot.git
+cd LicenseChain-TG-Bot
 
-### 🛡️ **Security**
-- Secure API communication
-- User authentication
-- Permission-based access
-- Rate limiting protection
-- Data encryption
+# Install dependencies
+npm install
+
+# Start the bot
+npm start
+```
+
+### Method 2: Docker
+
+```bash
+# Build the Docker image
+docker build -t licensechain-telegram-bot .
+
+# Run the container
+docker run -p 3000:3000 licensechain-telegram-bot
+```
+
+### Method 3: Manual Installation
+
+1. Download the latest release from [GitHub Releases](https://github.com/LicenseChain/LicenseChain-TG-Bot/releases)
+2. Extract to your project directory
+3. Install dependencies: `npm install`
+4. Configure environment variables
+5. Start the bot: `npm start`
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Basic Setup
 
-- Node.js 18.0.0 or higher
-- Telegram Bot Token
-- LicenseChain API Key
-- Telegram account
+```bash
+# Clone the repository
+git clone https://github.com/LicenseChain/LicenseChain-TG-Bot.git
+cd LicenseChain-TG-Bot
 
-### Installation
+# Install dependencies
+npm install
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/licensechain/telegram-bot.git
-   cd telegram-bot
-   ```
+# Copy environment file
+cp .env.example .env
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+# Edit environment variables
+nano .env
 
-3. **Environment setup**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
+# Start the bot
+npm start
+```
 
-4. **Start the bot**
-   ```bash
-   npm start
-   ```
+### Environment Configuration
 
-### Environment Variables
+Create a `.env` file with the following variables:
 
 ```env
 # Telegram Configuration
-TELEGRAM_TOKEN=your_telegram_bot_token
-TELEGRAM_WEBHOOK_URL=https://yourdomain.com/webhook
+TELEGRAM_TOKEN=your-telegram-bot-token
+TELEGRAM_WEBHOOK_URL=your-webhook-url
 
 # LicenseChain API
-LICENSE_CHAIN_API_KEY=your_api_key
-LICENSE_CHAIN_API_URL=https://api.licensechain.app
+LICENSECHAIN_API_KEY=your-api-key
+LICENSECHAIN_APP_NAME=your-app-name
+LICENSECHAIN_APP_VERSION=1.0.0
+LICENSECHAIN_BASE_URL=https://api.licensechain.com
 
 # Bot Configuration
-LOG_LEVEL=info
-PORT=3005
+BOT_DEBUG=false
+BOT_OWNER_ID=your-telegram-user-id
 
-# Database (Optional)
-DATABASE_URL=sqlite:./data/bot.db
+# Database Configuration
+DATABASE_URL=your-database-url
+
+# Webhook Configuration
+WEBHOOK_URL=your-webhook-url
+WEBHOOK_SECRET=your-webhook-secret
 ```
 
 ## 📚 Commands
 
-### Basic Commands
-
-#### `/start`
-Start the bot and get welcome message with quick actions.
-
-**Features:**
-- Welcome message
-- Quick action buttons
-- Command overview
-- User registration
-
-#### `/help`
-Show all available commands and their descriptions.
-
-**Shows:**
-- Complete command list
-- Usage examples
-- Quick tips
-- Support information
-
 ### License Commands
 
-#### `/validate <license_key>`
-Validate a license key and get its status.
+```bash
+# Validate a license
+/validate <license-key>
 
-**Example:**
+# Get license information
+/info <license-key>
+
+# List user's licenses
+/m licenses
+
+# Create a new license
+/create <user-id> <features> <expires>
+
+# Update a license
+/update <license-key> <field> <value>
+
+# Revoke a license
+/revoke <license-key>
 ```
-/validate LC-ABC123-DEF456-GHI789
+
+### User Commands
+
+```bash
+# Get user information
+/user <user-id>
+
+# Get user's licenses
+/licenses <user-id>
+
+# Get user's analytics
+/analytics <user-id>
+
+# Ban a user
+/ban <user-id> <reason>
+
+# Unban a user
+/unban <user-id>
 ```
 
-**Response:**
-- ✅ License Valid - Shows license details and features
-- ❌ License Invalid - Shows error message
-- Action buttons for more details
+### Support Commands
 
-#### `/license`
-Manage your licenses with interactive menu.
+```bash
+# Create a support ticket
+/ticket <subject> <description>
 
-**Features:**
-- List all licenses
-- Create new license
-- View license details
-- License analytics
+# List support tickets
+/tickets
+
+# Get ticket details
+/ticket <ticket-id>
+
+# Update ticket status
+/update <ticket-id> <status>
+
+# Close a ticket
+/close <ticket-id>
+```
 
 ### Analytics Commands
 
-#### `/analytics`
-View comprehensive analytics and statistics.
+```bash
+# Get usage analytics
+/usage [timeframe]
 
-**Shows:**
-- Revenue overview
-- License statistics
-- User metrics
-- Growth trends
-- Usage patterns
+# Get license analytics
+/licenses [timeframe]
 
-#### `/stats`
-Get quick statistics summary.
+# Get performance metrics
+/performance
 
-**Shows:**
-- Total validations
-- Active licenses
-- Most used features
-- Usage trends
+# Get error statistics
+/errors
+```
 
-### Profile Commands
+### Admin Commands
 
-#### `/profile`
-Manage your user profile and settings.
+```bash
+# Get bot status
+/status
 
-**Features:**
-- View profile information
-- Update settings
-- Notification preferences
-- Language selection
+# Get bot statistics
+/stats
 
-#### `/settings`
-Configure bot settings and preferences.
+# Reload commands
+/reload
 
-**Options:**
-- Notification frequency
-- Language settings
-- Privacy options
-- Data preferences
+# Set bot status
+/setstatus <status>
+
+# Get bot logs
+/logs [lines]
+```
 
 ## 🔧 Configuration
 
-### Bot Setup
+### Bot Configuration
 
-1. **Create Telegram Bot**
-   - Message @BotFather on Telegram
-   - Use `/newbot` command
-   - Follow instructions to get token
+Configure the bot through environment variables or a configuration file:
 
-2. **Configure Bot Settings**
-   - Set bot description
-   - Add bot commands
-   - Configure privacy settings
-   - Set up webhook (optional)
-
-3. **Get Bot Token**
-   - Copy the token from BotFather
-   - Add to environment variables
-
-### Database Setup
-
-The bot uses SQLite by default for local data storage:
-
-```bash
-# Create data directory
-mkdir data
-
-# The bot will automatically create the database
-npm start
-```
-
-For production, you can use PostgreSQL or MySQL:
-
-```env
-DATABASE_URL=postgresql://user:password@localhost:5432/licensechain_bot
-```
-
-## 🛠️ Development
-
-### Project Structure
-
-```
-src/
-├── commands/          # Bot command implementations
-├── handlers/          # Message and command handlers
-├── client/           # LicenseChain API client
-├── database/         # Database management
-├── utils/            # Utility functions
-├── events/           # Telegram event handlers
-└── index.js          # Main bot file
-```
-
-### Adding New Commands
-
-1. **Create command file** in `src/commands/`
-2. **Define command properties**
-3. **Implement execute function**
-4. **Register command** (automatic)
-
-**Example:**
 ```javascript
+// config/bot.js
 module.exports = {
-  name: 'example',
-  description: 'Example command',
-  
-  async execute(msg, bot, licenseClient, dbManager) {
-    await bot.sendMessage(msg.chat.id, 'Hello World!');
-  }
-};
-```
-
-### Adding New Handlers
-
-1. **Create handler file** in `src/handlers/`
-2. **Define handler logic**
-3. **Register handler** in main file
-
-**Example:**
-```javascript
-module.exports = {
-  name: 'message',
-  
-  async execute(msg, bot, licenseClient, dbManager) {
-    // Handle message
-  }
-};
-```
-
-## 📊 Monitoring
-
-### Health Check
-
-The bot includes a health check endpoint:
-
-```http
-GET http://localhost:3005/health
-```
-
-**Response:**
-```json
-{
-  "status": "healthy",
-  "bot": "online",
-  "uptime": 3600,
-  "timestamp": "2024-01-20T10:30:00.000Z",
-  "version": "1.0.0"
-}
-```
-
-### Statistics
-
-Get bot statistics:
-
-```http
-GET http://localhost:3005/stats
-```
-
-**Response:**
-```json
-{
-  "bot": {
-    "username": "licensechain_bot",
-    "first_name": "LicenseChain Bot",
-    "id": 123456789
+  telegram: {
+    token: process.env.TELEGRAM_TOKEN,
+    webhookUrl: process.env.TELEGRAM_WEBHOOK_URL
   },
-  "users": 1250,
-  "licenses": 500,
-  "commands": 1500,
-  "uptime": 3600,
-  "memory": {
-    "rss": 45678912,
-    "heapTotal": 20971520,
-    "heapUsed": 12345678
+  licensechain: {
+    apiKey: process.env.LICENSECHAIN_API_KEY,
+    appName: process.env.LICENSECHAIN_APP_NAME,
+    version: process.env.LICENSECHAIN_APP_VERSION,
+    baseUrl: process.env.LICENSECHAIN_BASE_URL
+  },
+  bot: {
+    debug: process.env.BOT_DEBUG === 'true',
+    ownerId: process.env.BOT_OWNER_ID
   }
-}
+};
 ```
 
-### Logging
+### Command Configuration
 
-The bot uses Winston for structured logging:
+Configure commands and their permissions:
 
-- **Console** - Development logging
-- **Files** - Production logging
-- **Levels** - Error, Warn, Info, Debug
-
-**Log Files:**
-- `logs/error.log` - Error messages only
-- `logs/combined.log` - All log messages
-
-## 🚀 Deployment
-
-### Docker Deployment
-
-1. **Build the image:**
-   ```bash
-   docker build -t licensechain-telegram-bot .
-   ```
-
-2. **Run the container:**
-   ```bash
-   docker run -d \
-     --name licensechain-bot \
-     -e TELEGRAM_TOKEN=your_token \
-     -e LICENSE_CHAIN_API_KEY=your_key \
-     -p 3005:3005 \
-     licensechain-telegram-bot
-   ```
-
-### Docker Compose
-
-```yaml
-version: '3.8'
-services:
-  telegram-bot:
-    build: .
-    environment:
-      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
-      - LICENSE_CHAIN_API_KEY=${LICENSE_CHAIN_API_KEY}
-      - DATABASE_URL=postgresql://user:pass@postgres:5432/bot
-    ports:
-      - "3005:3005"
-    depends_on:
-      - postgres
-
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_DB=bot
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=pass
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
+```javascript
+// config/commands.js
+module.exports = {
+  'validate': {
+    permission: 'user',
+    cooldown: 5000,
+    description: 'Validate a license key'
+  },
+  'create': {
+    permission: 'admin',
+    cooldown: 10000,
+    description: 'Create a new license'
+  },
+  'status': {
+    permission: 'owner',
+    cooldown: 0,
+    description: 'Get bot status'
+  }
+};
 ```
 
-### Production Setup
+### Database Configuration
 
-1. **Set up environment variables**
-2. **Configure database**
-3. **Set up monitoring**
-4. **Configure logging**
-5. **Set up backups**
-6. **Configure auto-restart**
+The bot supports multiple database types:
 
-## 🔒 Security
+```javascript
+// PostgreSQL
+DATABASE_URL=postgresql://username:password@localhost:5432/licensechain
 
-### API Security
+// MySQL
+DATABASE_URL=mysql://username:password@localhost:3306/licensechain
 
-- **HTTPS only** for API communication
-- **API key authentication**
-- **Request signing** for webhooks
-- **Rate limiting** protection
-- **Input validation**
+// SQLite
+DATABASE_URL=sqlite://./database.sqlite
+```
 
-### Telegram Security
+## 🛡️ Security Features
 
-- **User authentication**
-- **Command validation**
-- **Input sanitization**
-- **Error handling**
-- **Privacy protection**
+### Authentication
+
+- Telegram user verification
+- Role-based command permissions
+- User authentication system
+- Secure API key management
+
+### Authorization
+
+- Command-level permissions
+- User role validation
+- Admin-only commands
+- Owner-only functions
 
 ### Data Protection
 
-- **Encrypted storage** for sensitive data
-- **Secure configuration** management
-- **Audit logging** for actions
-- **Data retention** policies
-- **GDPR compliance**
+- Input validation and sanitization
+- SQL injection prevention
+- XSS protection
+- Secure logging
+
+## 📊 Analytics and Monitoring
+
+### Command Analytics
+
+```javascript
+// Track command usage
+bot.on('message', async (ctx) => {
+  if (ctx.message.text.startsWith('/')) {
+    analytics.track('command_used', {
+      command: ctx.message.text.split(' ')[0],
+      user: ctx.from.id,
+      chat: ctx.chat.id,
+      timestamp: new Date()
+    });
+  }
+});
+```
+
+### Performance Monitoring
+
+```javascript
+// Monitor command execution time
+const start = Date.now();
+await command.execute(ctx);
+const duration = Date.now() - start;
+metrics.record('command_execution_time', duration);
+```
+
+### Error Tracking
+
+```javascript
+// Track command errors
+try {
+  await command.execute(ctx);
+} catch (error) {
+  errorTracker.captureException(error, {
+    command: ctx.message.text.split(' ')[0],
+    user: ctx.from.id,
+    chat: ctx.chat.id
+  });
+}
+```
+
+## 🔄 Error Handling
+
+### Custom Error Types
+
+```javascript
+// Custom error classes
+class CommandError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'CommandError';
+  }
+}
+
+class PermissionError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'PermissionError';
+  }
+}
+```
+
+### Error Middleware
+
+```javascript
+// Global error handler
+bot.catch((err, ctx) => {
+  console.error('Bot error:', err);
+  errorTracker.captureException(err);
+  
+  ctx.reply('An error occurred. Please try again later.');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  errorTracker.captureException(reason);
+});
+```
+
+## 🧪 Testing
+
+### Unit Tests
+
+```bash
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+### Integration Tests
+
+```bash
+# Test with real Telegram API
+npm run test:integration
+```
+
+### End-to-End Tests
+
+```bash
+# Test complete command flows
+npm run test:e2e
+```
+
+## 📝 Examples
+
+See the `examples/` directory for complete examples:
+
+- `basic-setup.js` - Basic bot setup
+- `custom-commands.js` - Custom command examples
+- `webhook-integration.js` - Webhook handling
+- `deployment.js` - Deployment configuration
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes
-4. Add tests for new functionality
-5. Run tests: `npm test`
-6. Commit your changes: `git commit -m 'Add amazing feature'`
-7. Push to the branch: `git push origin feature/amazing-feature`
-8. Open a Pull Request
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-### Code Style
+### Development Setup
 
-- Follow JavaScript best practices
-- Use ESLint configuration
-- Write comprehensive tests
-- Document new features
-- Follow conventional commits
-
-## 📞 Support
-
-- **Documentation**: [docs.licensechain.app](https://docs.licensechain.app)
-- **Issues**: [GitHub Issues](https://github.com/licensechain/telegram-bot/issues)
-- **Email**: support@licensechain.app
-- **Telegram**: [@LicenseChainSupport](https://t.me/LicenseChainSupport)
+1. Clone the repository
+2. Install Node.js 16 or later
+3. Install dependencies: `npm install`
+4. Set up environment variables
+5. Start development server: `npm run dev`
 
 ## 📄 License
 
-This project is licensed under the Elastic License 2.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🆘 Support
 
-- Telegram team for the Bot API
-- LicenseChain team for the API
-- All contributors and supporters
+- **Documentation**: [https://docs.licensechain.com/telegram-bot](https://docs.licensechain.com/telegram-bot)
+- **Issues**: [GitHub Issues](https://github.com/LicenseChain/LicenseChain-TG-Bot/issues)
+- **Discord**: [LicenseChain Discord](https://discord.gg/licensechain)
+- **Email**: support@licensechain.com
+
+## 🔗 Related Projects
+
+- [LicenseChain Discord Bot](https://github.com/LicenseChain/LicenseChain-Discord-Bot)
+- [LicenseChain Node.js SDK](https://github.com/LicenseChain/LicenseChain-NodeJS-SDK)
+- [LicenseChain Customer Panel](https://github.com/LicenseChain/LicenseChain-Customer-Panel)
 
 ---
 
-**LicenseChain Telegram Bot** - Empowering Telegram users with license management 🤖
-
-*Built with ❤️ by the LicenseChain Team*
+**Made with ❤️ for the Telegram community**
