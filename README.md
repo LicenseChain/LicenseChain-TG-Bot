@@ -1,4 +1,4 @@
-# LicenseChain Telegram Bot
+﻿# LicenseChain Telegram Bot
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-16+-green.svg)](https://nodejs.org/)
@@ -7,18 +7,18 @@
 
 Official Telegram Bot for LicenseChain - License management and customer support through Telegram.
 
-## 🚀 Features
+## ðŸš€ Features
 
-- **🔐 License Management** - Validate, create, and manage licenses
-- **👤 User Support** - Handle customer inquiries and support tickets
-- **📊 Analytics** - View usage statistics and performance metrics
-- **🔔 Notifications** - Real-time license events and alerts
-- **🎫 Ticket System** - Create and manage support tickets
-- **📈 Reporting** - Generate reports and analytics
-- **🛡️ Security** - Secure authentication and authorization
-- **🛠️ Easy Setup** - Simple configuration and deployment
+- **ðŸ” License Management** - Validate, create, and manage licenses
+- **ðŸ‘¤ User Support** - Handle customer inquiries and support tickets
+- **ðŸ“Š Analytics** - View usage statistics and performance metrics
+- **ðŸ”” Notifications** - Real-time license events and alerts
+- **ðŸŽ« Ticket System** - Create and manage support tickets
+- **ðŸ“ˆ Reporting** - Generate reports and analytics
+- **ðŸ›¡ï¸ Security** - Secure authentication and authorization
+- **ðŸ› ï¸ Easy Setup** - Simple configuration and deployment
 
-## 📦 Installation
+## ðŸ“¦ Installation
 
 ### Method 1: npm (Recommended)
 
@@ -52,7 +52,7 @@ docker run -p 3000:3000 licensechain-telegram-bot
 4. Configure environment variables
 5. Start the bot: `npm start`
 
-## 🚀 Quick Start
+## ðŸš€ Quick Start
 
 ### Basic Setup
 
@@ -87,7 +87,7 @@ TELEGRAM_WEBHOOK_URL=your-webhook-url
 LICENSECHAIN_API_KEY=your-api-key
 LICENSECHAIN_APP_NAME=your-app-name
 LICENSECHAIN_APP_VERSION=1.0.0
-LICENSECHAIN_BASE_URL=https://api.licensechain.com
+LICENSECHAIN_BASE_URL=https://api.licensechain.app
 
 # Bot Configuration
 BOT_DEBUG=false
@@ -101,7 +101,7 @@ WEBHOOK_URL=your-webhook-url
 WEBHOOK_SECRET=your-webhook-secret
 ```
 
-## 📚 Commands
+## ðŸ“š Commands
 
 ### License Commands
 
@@ -198,7 +198,7 @@ WEBHOOK_SECRET=your-webhook-secret
 /logs [lines]
 ```
 
-## 🔧 Configuration
+## ðŸ”§ Configuration
 
 ### Bot Configuration
 
@@ -264,7 +264,7 @@ DATABASE_URL=mysql://username:password@localhost:3306/licensechain
 DATABASE_URL=sqlite://./database.sqlite
 ```
 
-## 🛡️ Security Features
+## ðŸ›¡ï¸ Security Features
 
 ### Authentication
 
@@ -287,7 +287,7 @@ DATABASE_URL=sqlite://./database.sqlite
 - XSS protection
 - Secure logging
 
-## 📊 Analytics and Monitoring
+## ðŸ“Š Analytics and Monitoring
 
 ### Command Analytics
 
@@ -330,7 +330,7 @@ try {
 }
 ```
 
-## 🔄 Error Handling
+## ðŸ”„ Error Handling
 
 ### Custom Error Types
 
@@ -368,7 +368,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 ```
 
-## 🧪 Testing
+## ðŸ§ª Testing
 
 ### Unit Tests
 
@@ -397,7 +397,7 @@ npm run test:integration
 npm run test:e2e
 ```
 
-## 📝 Examples
+## ðŸ“ Examples
 
 See the `examples/` directory for complete examples:
 
@@ -406,7 +406,7 @@ See the `examples/` directory for complete examples:
 - `webhook-integration.js` - Webhook handling
 - `deployment.js` - Deployment configuration
 
-## 🤝 Contributing
+## ðŸ¤ Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
@@ -418,18 +418,18 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 4. Set up environment variables
 5. Start development server: `npm run dev`
 
-## 📄 License
+## ðŸ“„ License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## ðŸ†˜ Support
 
-- **Documentation**: [https://docs.licensechain.com/telegram-bot](https://docs.licensechain.com/telegram-bot)
+- **Documentation**: [https://docs.licensechain.app/telegram-bot](https://docs.licensechain.app/telegram-bot)
 - **Issues**: [GitHub Issues](https://github.com/LicenseChain/LicenseChain-TG-Bot/issues)
 - **Discord**: [LicenseChain Discord](https://discord.gg/licensechain)
-- **Email**: support@licensechain.com
+- **Email**: support@licensechain.app
 
-## 🔗 Related Projects
+## ðŸ”— Related Projects
 
 - [LicenseChain Discord Bot](https://github.com/LicenseChain/LicenseChain-Discord-Bot)
 - [LicenseChain Node.js SDK](https://github.com/LicenseChain/LicenseChain-NodeJS-SDK)
@@ -437,4 +437,28 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ for the Telegram community**
+**Made with â¤ï¸ for the Telegram community**
+
+
+## API Endpoints
+
+All endpoints automatically use the /v1 prefix when connecting to https://api.licensechain.app.
+
+### Base URL
+- **Production**: https://api.licensechain.app/v1\n- **Development**: https://api.licensechain.app/v1\n\n### Available Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /v1/health | Health check |
+| POST | /v1/auth/login | User login |
+| POST | /v1/auth/register | User registration |
+| GET | /v1/apps | List applications |
+| POST | /v1/apps | Create application |
+| GET | /v1/licenses | List licenses |
+| POST | /v1/licenses/verify | Verify license |
+| GET | /v1/webhooks | List webhooks |
+| POST | /v1/webhooks | Create webhook |
+| GET | /v1/analytics | Get analytics |
+
+**Note**: The SDK automatically prepends /v1 to all endpoints, so you only need to specify the path (e.g., /auth/login instead of /v1/auth/login).
+
