@@ -92,11 +92,15 @@ module.exports = {
       }
 
       // Create license data (API requires appId in body even though it's in URL)
+      // Only include expiresAt if it's not null (API schema validation rejects null for date-time)
       const licenseData = {
         appId: appId,
-        plan: plan,
-        expiresAt: expiresAt
+        plan: plan
       };
+      
+      if (expiresAt) {
+        licenseData.expiresAt = expiresAt;
+      }
 
       // Create license via API (endpoint: /v1/apps/:appId/licenses)
       const result = await licenseClient.createLicense(appId, licenseData);
