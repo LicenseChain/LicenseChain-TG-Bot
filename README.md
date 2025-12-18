@@ -1,4 +1,4 @@
-﻿# LicenseChain Telegram Bot
+# LicenseChain Telegram Bot
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-16+-green.svg)](https://nodejs.org/)
@@ -62,7 +62,7 @@ docker run -p 8080:8080 \
 4. Configure environment variables
 5. Start the bot: `npm start`
 
-## ðŸš€ Quick Start
+## 🚀 Quick Start
 
 ### Basic Setup
 
@@ -378,7 +378,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 ```
 
-## ðŸ§ª Testing
+## 🧪 Testing
 
 ### Unit Tests
 
@@ -432,7 +432,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## ðŸ†˜ Support
+## 🎨 Support
 
 - **Documentation**: [https://docs.licensechain.app/telegram-bot](https://docs.licensechain.app/telegram-bot)
 - **Issues**: [GitHub Issues](https://github.com/LicenseChain/LicenseChain-TG-Bot/issues)
