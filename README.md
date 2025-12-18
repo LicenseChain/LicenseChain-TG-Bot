@@ -1,4 +1,4 @@
-﻿# LicenseChain Telegram Bot
+# LicenseChain Telegram Bot
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-16+-green.svg)](https://nodejs.org/)
@@ -40,8 +40,18 @@ npm start
 # Build the Docker image
 docker build -t licensechain-telegram-bot .
 
-# Run the container
-docker run -p 3000:3000 licensechain-telegram-bot
+# Run the container (default port is 3005)
+docker run -p 3005:3005 \
+  -e TELEGRAM_TOKEN=your_telegram_token \
+  -e LICENSE_CHAIN_API_KEY=your_api_key \
+  licensechain-telegram-bot
+
+# Or use custom port via environment variable
+docker run -p 8080:8080 \
+  -e PORT=8080 \
+  -e TELEGRAM_TOKEN=your_telegram_token \
+  -e LICENSE_CHAIN_API_KEY=your_api_key \
+  licensechain-telegram-bot
 ```
 
 ### Method 3: Manual Installation
