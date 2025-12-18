@@ -103,7 +103,7 @@ class LicenseChainClient {
    */
   async updateLicense(licenseId, updateData) {
     try {
-      const response = await this.client.put(`/api/licenses/${licenseId}`, updateData);
+      const response = await this.client.put(`/v1/licenses/${licenseId}`, updateData);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to update license: ${error.response?.data?.message || error.message}`);
