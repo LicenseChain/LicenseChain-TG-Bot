@@ -13,9 +13,9 @@ Official Telegram Bot for LicenseChain - License management and customer support
 - **ðŸ‘¤ User Support** - Handle customer inquiries and support tickets
 - **ðŸ“Š Analytics** - View usage statistics and performance metrics
 - **ðŸ”” Notifications** - Real-time license events and alerts
-- **ðŸŽ« Ticket System** - Create and manage support tickets
+- **🎫 Ticket System** - Create and manage support tickets
 - **ðŸ“ˆ Reporting** - Generate reports and analytics
-- **ðŸ›¡ï¸ Security** - Secure authentication and authorization
+- **🔒 Security** - Secure authentication and authorization
 - **ðŸ› ï¸ Easy Setup** - Simple configuration and deployment
 
 ## ðŸ“¦ Installation
@@ -274,7 +274,7 @@ DATABASE_URL=mysql://username:password@localhost:3306/licensechain
 DATABASE_URL=sqlite://./database.sqlite
 ```
 
-## ðŸ›¡ï¸ Security Features
+## 🔒 Security Features
 
 ### Authentication
 
@@ -416,7 +416,7 @@ See the `examples/` directory for complete examples:
 - `webhook-integration.js` - Webhook handling
 - `deployment.js` - Deployment configuration
 
-## ðŸ¤ Contributing
+## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
