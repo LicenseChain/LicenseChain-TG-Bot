@@ -256,10 +256,25 @@ class MessageHandler {
       
       if (appName) {
         try {
-          const app = await this.licenseClient.getAppByName(appName);
-          if (app && app.id) {
-            const licensesData = await this.licenseClient.getAppLicenses(app.id);
+          // Try to get app first, or use appName directly as appId
+          let appId = appName;
+          try {
+            const app = await this.licenseClient.getAppByName(appName);
+            if (app && app.id) {
+              appId = app.id;
+            }
+          } catch (appError) {
+            // If app lookup fails, use appName as appId directly
+            this.logger.warn('Could not fetch app info, using appName as appId:', appError.message);
+          }
+          
+          // Try to fetch licenses
+          try {
+            const licensesData = await this.licenseClient.getAppLicenses(appId);
             apiLicenses = licensesData?.licenses || licensesData || [];
+          } catch (licenseError) {
+            this.logger.error('Error fetching licenses from API:', licenseError);
+            // Continue with local stats if API fails
           }
         } catch (apiError) {
           this.logger.error('Error fetching licenses from API:', apiError);
