@@ -154,6 +154,23 @@ class DatabaseManager {
     });
   }
 
+  async logValidation(userId, licenseKey, isValid) {
+    return new Promise((resolve, reject) => {
+      // Log validation as a command
+      this.db.run(
+        'INSERT INTO commands (user_id, command) VALUES (?, ?)',
+        [userId, `validate:${licenseKey}:${isValid ? 'valid' : 'invalid'}`],
+        (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        }
+      );
+    });
+  }
+
   async getBotStats() {
     return new Promise((resolve, reject) => {
       Promise.all([

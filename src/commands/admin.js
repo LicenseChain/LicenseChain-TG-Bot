@@ -186,4 +186,52 @@ class AdminCommand {
     }
 }
 
-module.exports = AdminCommand;
+// Export as command object for CommandHandler
+module.exports = {
+    name: 'admin',
+    description: 'Open admin panel (Admin only)',
+    execute: async (msg, bot, licenseClient, dbManager) => {
+        const chatId = msg.chat.id;
+        const userId = msg.from.id;
+        const username = msg.from.username || 'Unknown';
+        
+        try {
+            const logger = new Logger('AdminCommand');
+            logger.info(`Admin command received from user ${userId} (${username})`);
+            
+            const adminCommand = new AdminCommand(licenseClient);
+            
+            // Check if user is admin
+            if (!await adminCommand.isAdmin(userId)) {
+                await bot.sendMessage(chatId, '❌ You are not authorized to use admin commands.');
+                return;
+            }
+            
+            // Create admin keyboard
+            const keyboard = {
+                inline_keyboard: [
+                    [
+                        { text: '📊 Statistics', callback_data: 'admin:stats' },
+                        { text: '👥 Users', callback_data: 'admin:users' }
+                    ],
+                    [
+                        { text: '📋 Licenses', callback_data: 'admin:licenses' },
+                        { text: '⚙️ Settings', callback_data: 'admin:settings' }
+                    ],
+                    [
+                        { text: '🔧 System', callback_data: 'admin:system' },
+                        { text: '📝 Logs', callback_data: 'admin:logs' }
+                    ]
+                ]
+            };
+            
+            await bot.sendMessage(chatId, '🔧 Admin Panel', { reply_markup: keyboard });
+        } catch (error) {
+            console.error('Error in admin command:', error);
+            await bot.sendMessage(chatId, '❌ An error occurred. Please try again later.');
+        }
+    }
+};
+
+// Also export the class for backward compatibility
+module.exports.AdminCommand = AdminCommand;

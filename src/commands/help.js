@@ -21,6 +21,23 @@ class HelpCommand {
         }
     }
 
+    async execute(msg, bot, licenseClient, dbManager) {
+        const chatId = msg.chat.id;
+        const userId = msg.from.id;
+        const username = msg.from.username || 'Unknown';
+        
+        try {
+            const logger = new Logger('HelpCommand');
+            logger.info(`Help command received from user ${userId} (${username})`);
+            
+            const message = this.getHelpMessage();
+            await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+        } catch (error) {
+            console.error('Error in help command:', error);
+            await bot.sendMessage(chatId, '❌ An error occurred. Please try again later.');
+        }
+    }
+
     getHelpMessage() {
         return `🤖 *LicenseChain Telegram Bot Help*
 
@@ -179,4 +196,28 @@ Note: Requires admin privileges`
     }
 }
 
-module.exports = HelpCommand;
+// Export as command object for CommandHandler
+module.exports = {
+    name: 'help',
+    description: 'Show help information and available commands',
+    execute: async (msg, bot, licenseClient, dbManager) => {
+        const chatId = msg.chat.id;
+        const userId = msg.from.id;
+        const username = msg.from.username || 'Unknown';
+        
+        try {
+            const logger = new Logger('HelpCommand');
+            logger.info(`Help command received from user ${userId} (${username})`);
+            
+            const helpCommand = new HelpCommand(licenseClient);
+            const message = helpCommand.getHelpMessage();
+            await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+        } catch (error) {
+            console.error('Error in help command:', error);
+            await bot.sendMessage(chatId, '❌ An error occurred. Please try again later.');
+        }
+    }
+};
+
+// Also export the class for backward compatibility
+module.exports.HelpCommand = HelpCommand;

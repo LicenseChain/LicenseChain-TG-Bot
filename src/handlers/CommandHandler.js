@@ -47,11 +47,22 @@ class CommandHandler {
         
         if (command) {
           try {
+            // Log command execution
+            await this.dbManager.logCommand(msg.from.id, commandName).catch(err => {
+              console.error('Error logging command:', err);
+            });
+            
             await command.execute(msg, this.bot, this.licenseClient, this.dbManager);
           } catch (error) {
             console.error(`Error executing command ${commandName}:`, error);
             await this.bot.sendMessage(msg.chat.id, '❌ An error occurred while processing your command.');
           }
+        } else {
+          // Command not found
+          await this.bot.sendMessage(msg.chat.id, 
+            `❌ Unknown command: /${commandName}\n\n` +
+            `Type /help to see all available commands.`
+          );
         }
       }
     });
