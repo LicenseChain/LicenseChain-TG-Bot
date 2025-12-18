@@ -13,12 +13,11 @@ module.exports = {
 
     try {
       // Register user if not exists
-      await dbManager.createOrUpdateUser({
-        telegramId: userId,
+      await dbManager.getOrCreateUser({
+        id: userId,
         username: username,
-        firstName: msg.from.first_name,
-        lastName: msg.from.last_name,
-        languageCode: msg.from.language_code
+        first_name: msg.from.first_name,
+        last_name: msg.from.last_name
       });
 
       const welcomeMessage = `🎉 *Welcome to LicenseChain Bot!*\n\n` +
