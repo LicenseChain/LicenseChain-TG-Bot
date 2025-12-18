@@ -211,7 +211,17 @@ module.exports = {
             
             const helpCommand = new HelpCommand(licenseClient);
             const message = helpCommand.getHelpMessage();
-            await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+            // Try Markdown first, fallback to plain text if parsing fails
+            try {
+                await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+            } catch (markdownError) {
+                // Fallback to plain text if markdown parsing fails
+                const plainMessage = message
+                    .replace(/\*/g, '')
+                    .replace(/`/g, '')
+                    .replace(/_/g, '');
+                await bot.sendMessage(chatId, plainMessage);
+            }
         } catch (error) {
             console.error('Error in help command:', error);
             await bot.sendMessage(chatId, '❌ An error occurred. Please try again later.');

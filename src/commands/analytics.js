@@ -11,16 +11,38 @@ module.exports = {
     const userId = msg.from.id;
 
     try {
-      const stats = await dbManager.getBotStats();
+      // Get bot stats from local database
+      const botStats = await dbManager.getBotStats();
+      
+      // Get licenses from LicenseChain API if app name is configured
+      let apiLicenses = [];
+      let appName = process.env.LICENSECHAIN_APP_NAME;
+      
+      if (appName) {
+        try {
+          const app = await licenseClient.getAppByName(appName);
+          if (app && app.id) {
+            const licensesData = await licenseClient.getAppLicenses(app.id);
+            apiLicenses = licensesData?.licenses || licensesData || [];
+          }
+        } catch (apiError) {
+          console.error('Error fetching licenses from API:', apiError.message);
+          // Continue with local stats if API fails
+        }
+      }
+      
+      const totalLicenses = apiLicenses.length > 0 ? apiLicenses.length : botStats.totalLicenses;
+      const activeLicenses = apiLicenses.filter(l => l.status?.toLowerCase() === 'active').length;
       
       const analyticsMessage = `📊 *Analytics & Statistics*\n\n` +
         `*Overall Statistics:*\n` +
-        `👥 Total Users: ${stats.totalUsers}\n` +
-        `📋 Total Licenses: ${stats.totalLicenses}\n` +
-        `⚡ Total Commands: ${stats.totalCommands}\n\n` +
+        `👥 Total Users: ${botStats.totalUsers}\n` +
+        `📋 Total Licenses: ${totalLicenses}\n` +
+        `✅ Active Licenses: ${activeLicenses}\n` +
+        `⚡ Total Commands: ${botStats.totalCommands}\n\n` +
         `*Your Statistics:*\n` +
-        `📋 Your Licenses: 0\n` +
-        `✅ Validations: 0\n\n` +
+        `📋 Your Licenses: ${totalLicenses}\n` +
+        `✅ Validations: ${botStats.totalCommands}\n\n` +
         `Use /analytics for detailed analytics.`;
 
       await bot.sendMessage(chatId, analyticsMessage, {

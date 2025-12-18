@@ -192,6 +192,31 @@ class LicenseChainClient {
   }
 
   /**
+   * Get licenses for an app
+   */
+  async getAppLicenses(appId) {
+    try {
+      const response = await this.client.get(`/v1/apps/${appId}/licenses`);
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to get app licenses: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Get app by name
+   */
+  async getAppByName(appName) {
+    try {
+      const response = await this.client.get('/v1/apps');
+      const apps = response.data?.apps || response.data || [];
+      return apps.find(app => app.name === appName || app.id === appName);
+    } catch (error) {
+      throw new Error(`Failed to get app: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  /**
    * Send webhook notification
    */
   async sendWebhook(webhookUrl, data) {
