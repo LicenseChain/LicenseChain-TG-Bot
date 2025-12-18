@@ -25,7 +25,7 @@ module.exports = {
     }
 
     // Parse command: /create <user-id> <features> <expires>
-    // user-id: name for issuedTo or email for issuedEmail
+    // user-id: name for issuedTo or email for issuedEmail (can be multiple words)
     // features: plan (FREE, PRO, BUSINESS, ENTERPRISE)
     // expires: expiration date (YYYY-MM-DD format) or number of days
     if (args.length < 3) {
@@ -34,7 +34,7 @@ module.exports = {
         'Example: `/create tester FREE 2025-12-31`\n' +
         'Example: `/create user@example.com PRO 30`\n' +
         'Example: `/create John Doe BUSINESS 365`\n\n' +
-        '*user-id:* Name or email address\n' +
+        '*user-id:* Name or email address (can be multiple words)\n' +
         '*features:* FREE, PRO, BUSINESS, ENTERPRISE\n' +
         '*expires:* Date (YYYY-MM-DD) or days from now',
         { parse_mode: 'Markdown' }
@@ -42,9 +42,10 @@ module.exports = {
       return;
     }
 
-    const userId = args[0]; // Can be name or email
-    const plan = args[1].toUpperCase();
-    const expiresInput = args[2];
+    // Parse arguments: last 2 are plan and expires, everything before is user-id
+    const plan = args[args.length - 2].toUpperCase();
+    const expiresInput = args[args.length - 1];
+    const userIdentifier = args.slice(0, args.length - 2).join(' '); // Join all words except last 2
 
     // Validate plan
     const validPlans = ['FREE', 'PRO', 'BUSINESS', 'ENTERPRISE'];
@@ -58,10 +59,10 @@ module.exports = {
       return;
     }
 
-    // Determine if userId is an email or name
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userId);
-    const issuedTo = isEmail ? null : userId;
-    const issuedEmail = isEmail ? userId : null;
+    // Determine if userIdentifier is an email or name
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userIdentifier);
+    const issuedTo = isEmail ? null : userIdentifier;
+    const issuedEmail = isEmail ? userIdentifier : null;
 
     // Parse expiration date
     let expiresAt = null;
