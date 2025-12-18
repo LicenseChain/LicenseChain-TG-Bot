@@ -25,21 +25,26 @@ module.exports = {
     }
 
     // Parse command: /create <user-id> <features> <expires>
-    // Simplified: /create <plan> [expires-days]
-    if (args.length === 0) {
+    // user-id: name for issuedTo or email for issuedEmail
+    // features: plan (FREE, PRO, BUSINESS, ENTERPRISE)
+    // expires: expiration date (YYYY-MM-DD format) or number of days
+    if (args.length < 3) {
       await bot.sendMessage(chatId, 
-        '❌ *Usage:* `/create <plan> [expires-days]`\n\n' +
-        'Example: `/create FREE 30`\n' +
-        'Example: `/create PRO 365`\n\n' +
-        'Plans: FREE, PRO, BUSINESS, ENTERPRISE\n' +
-        'If expires-days is not provided, license will not expire.',
+        '❌ *Usage:* `/create <user-id> <features> <expires>`\n\n' +
+        'Example: `/create tester FREE 2025-12-31`\n' +
+        'Example: `/create user@example.com PRO 30`\n' +
+        'Example: `/create John Doe BUSINESS 365`\n\n' +
+        '*user-id:* Name or email address\n' +
+        '*features:* FREE, PRO, BUSINESS, ENTERPRISE\n' +
+        '*expires:* Date (YYYY-MM-DD) or days from now',
         { parse_mode: 'Markdown' }
       );
       return;
     }
 
-    const plan = args[0].toUpperCase();
-    const expiresDays = args[1] ? parseInt(args[1]) : null;
+    const userId = args[0]; // Can be name or email
+    const plan = args[1].toUpperCase();
+    const expiresInput = args[2];
 
     // Validate plan
     const validPlans = ['FREE', 'PRO', 'BUSINESS', 'ENTERPRISE'];
@@ -51,6 +56,47 @@ module.exports = {
         { parse_mode: 'Markdown' }
       );
       return;
+    }
+
+    // Determine if userId is an email or name
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userId);
+    const issuedTo = isEmail ? null : userId;
+    const issuedEmail = isEmail ? userId : null;
+
+    // Parse expiration date
+    let expiresAt = null;
+    if (expiresInput) {
+      // Check if it's a date string (YYYY-MM-DD format)
+      const dateMatch = expiresInput.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (dateMatch) {
+        const [, year, month, day] = dateMatch;
+        expiresAt = new Date(year, parseInt(month) - 1, day);
+        if (isNaN(expiresAt.getTime())) {
+          await bot.sendMessage(chatId,
+            '❌ *Invalid Date*\n\n' +
+            `Date format must be YYYY-MM-DD\n` +
+            `You provided: ${expiresInput}`,
+            { parse_mode: 'Markdown' }
+          );
+          return;
+        }
+        expiresAt = expiresAt.toISOString();
+      } else {
+        // Try parsing as number of days
+        const expiresDays = parseInt(expiresInput);
+        if (isNaN(expiresDays) || expiresDays < 1) {
+          await bot.sendMessage(chatId,
+            '❌ *Invalid Expiration*\n\n' +
+            `Expiration must be a date (YYYY-MM-DD) or number of days\n` +
+            `You provided: ${expiresInput}`,
+            { parse_mode: 'Markdown' }
+          );
+          return;
+        }
+        expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + expiresDays);
+        expiresAt = expiresAt.toISOString();
+      }
     }
 
     let loadingMsg = null;
@@ -83,20 +129,20 @@ module.exports = {
         console.warn('Could not fetch app info, using appName as appId:', appError.message);
       }
 
-      // Calculate expiration date
-      let expiresAt = null;
-      if (expiresDays) {
-        expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + expiresDays);
-        expiresAt = expiresAt.toISOString();
-      }
-
       // Create license data (API requires appId in body even though it's in URL)
       // Only include expiresAt if it's not null (API schema validation rejects null for date-time)
       const licenseData = {
         appId: appId,
         plan: plan
       };
+      
+      if (issuedTo) {
+        licenseData.issuedTo = issuedTo;
+      }
+      
+      if (issuedEmail) {
+        licenseData.issuedEmail = issuedEmail;
+      }
       
       if (expiresAt) {
         licenseData.expiresAt = expiresAt;
