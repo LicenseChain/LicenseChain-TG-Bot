@@ -24,7 +24,17 @@ COPY . .
 RUN cp .env.example .env 2>/dev/null || true
 
 # Create non-root user for security
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+# Check if UID 1000 exists, if so rename the user, otherwise create new user
+RUN if id -u 1000 >/dev/null 2>&1; then \
+        EXISTING_USER=$(id -un 1000); \
+        if [ "$EXISTING_USER" != "appuser" ]; then \
+            usermod -l appuser $EXISTING_USER && \
+            groupmod -n appuser $(id -gn 1000); \
+        fi; \
+    else \
+        useradd -m -u 1000 appuser; \
+    fi && \
+    chown -R 1000:1000 /app
 USER appuser
 
 # Expose port (default is 3005, can be overridden with PORT env var)
