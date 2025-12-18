@@ -32,8 +32,55 @@ module.exports = {
                           botStatus === 'offline' ? '❌' : 
                           botStatus === 'maintenance' ? '⚠️' : '⚪';
 
-      // Get bot statistics
+      // Get bot statistics from local DB
       const stats = await dbManager.getBotStats();
+      
+      // Fetch licenses from API to get accurate counts
+      let totalLicenses = stats.totalLicenses;
+      let uniqueUsers = stats.totalUsers;
+      const appName = process.env.LICENSECHAIN_APP_NAME;
+      
+      if (appName) {
+        try {
+          let appId = appName;
+          try {
+            const app = await licenseClient.getAppByName(appName);
+            if (app && app.id) {
+              appId = app.id;
+            }
+          } catch (appError) {
+            console.warn('Could not fetch app info:', appError.message);
+          }
+
+          try {
+            const licensesData = await licenseClient.getAppLicenses(appId);
+            const licenses = licensesData?.licenses || licensesData || [];
+            totalLicenses = licenses.length;
+            
+            // Count unique users from licenses
+            const userSet = new Set();
+            licenses.forEach(license => {
+              // Add issuedTo if present
+              if (license.issuedTo) {
+                userSet.add(license.issuedTo);
+              }
+              // Add issuedEmail if present
+              if (license.issuedEmail) {
+                userSet.add(license.issuedEmail);
+              }
+              // Add email field if present (fallback)
+              if (license.email) {
+                userSet.add(license.email);
+              }
+            });
+            uniqueUsers = userSet.size;
+          } catch (licenseError) {
+            console.error('Error fetching licenses:', licenseError.message);
+          }
+        } catch (apiError) {
+          console.error('Error fetching API data:', apiError.message);
+        }
+      }
       
       // Check API health
       let apiStatus = '❌ Unknown';
