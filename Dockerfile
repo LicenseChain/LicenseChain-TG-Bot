@@ -20,6 +20,9 @@ RUN npm ci --only=production
 # Copy application files
 COPY . .
 
+# Copy .env.example as .env template (users should mount their own .env)
+RUN cp .env.example .env 2>/dev/null || true
+
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
@@ -33,3 +36,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
 
 # Start the application
 CMD ["npm", "start"]
+
