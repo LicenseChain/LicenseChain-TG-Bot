@@ -87,6 +87,12 @@ class DatabaseManager {
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (user_id) REFERENCES users(id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS bot_status (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          status TEXT DEFAULT 'online',
+          updated_by INTEGER,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`
       ];
 
@@ -292,6 +298,50 @@ class DatabaseManager {
           } else {
             resolve(rows);
           }
+        }
+      );
+    });
+  }
+
+  async getBotStatus() {
+    return new Promise((resolve, reject) => {
+      this.db.get(
+        'SELECT * FROM bot_status ORDER BY updated_at DESC LIMIT 1',
+        [],
+        (err, row) => {
+          if (err) {
+            reject(err);
+          } else {
+            // Default to 'online' if no status found
+            resolve(row ? row.status : 'online');
+          }
+        }
+      );
+    });
+  }
+
+  async setBotStatus(status, updatedBy) {
+    return new Promise((resolve, reject) => {
+      // Delete old statuses and insert new one
+      this.db.run(
+        'DELETE FROM bot_status',
+        [],
+        (err) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          this.db.run(
+            'INSERT INTO bot_status (status, updated_by) VALUES (?, ?)',
+            [status, updatedBy],
+            function(err) {
+              if (err) {
+                reject(err);
+              } else {
+                resolve({ id: this.lastID, status, updatedBy });
+              }
+            }
+          );
         }
       );
     });

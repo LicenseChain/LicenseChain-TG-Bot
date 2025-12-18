@@ -26,6 +26,12 @@ module.exports = {
     try {
       const loadingMsg = await bot.sendMessage(chatId, '🔄 Checking bot status...');
 
+      // Get bot status from database
+      const botStatus = await dbManager.getBotStatus();
+      const statusEmoji = botStatus === 'online' ? '✅' : 
+                          botStatus === 'offline' ? '❌' : 
+                          botStatus === 'maintenance' ? '⚠️' : '⚪';
+
       // Get bot statistics
       const stats = await dbManager.getBotStats();
       
@@ -46,7 +52,7 @@ module.exports = {
       const memoryMB = Math.round(memoryUsage.heapUsed / 1024 / 1024);
 
       const message = `📊 *Bot Status*\n\n` +
-        `*Bot Status:* ✅ Online\n` +
+        `*Bot Status:* ${statusEmoji} ${botStatus.toUpperCase()}\n` +
         `*API Status:* ${apiStatus}\n` +
         `*Uptime:* ${uptimeHours}h ${uptimeMinutes}m\n` +
         `*Memory Usage:* ${memoryMB} MB\n\n` +

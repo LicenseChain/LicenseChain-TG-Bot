@@ -42,6 +42,26 @@ class CommandHandler {
   setupCommandHandlers() {
     this.bot.on('message', async (msg) => {
       if (msg.text && msg.text.startsWith('/')) {
+        // Check bot status before processing commands (except status/setstatus commands)
+        const commandName = msg.text.split(' ')[0].substring(1);
+        if (commandName !== 'status' && commandName !== 'setstatus') {
+          try {
+            const botStatus = await this.dbManager.getBotStatus();
+            if (botStatus === 'offline') {
+              await this.bot.sendMessage(msg.chat.id, 
+                '❌ *Bot is Offline*\n\n' +
+                'The bot is currently offline and not accepting commands.\n' +
+                'Please contact an administrator or try again later.',
+                { parse_mode: 'Markdown' }
+              );
+              return;
+            }
+          } catch (error) {
+            console.error('Error checking bot status:', error);
+            // Continue if status check fails
+          }
+        }
+
         // Handle /m licenses command specially
         if (msg.text.toLowerCase().startsWith('/m ')) {
           const mCommand = this.commands.get('m');

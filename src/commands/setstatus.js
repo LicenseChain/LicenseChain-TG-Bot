@@ -50,6 +50,9 @@ module.exports = {
     }
 
     try {
+      // Save status to database
+      await dbManager.setBotStatus(status, userId);
+
       const message = `✅ *Bot Status Updated*\n\n` +
         `*New Status:* ${status.toUpperCase()}\n` +
         `*Set By:* ${msg.from.username || msg.from.id}\n` +
@@ -62,7 +65,7 @@ module.exports = {
         );
       } else if (status === 'offline') {
         await bot.sendMessage(chatId, 
-          message + `⚠️ Bot status set to offline. Bot will stop responding.`,
+          message + `⚠️ Bot status set to offline. Bot will stop responding to commands.`,
           { parse_mode: 'Markdown' }
         );
       } else {
