@@ -76,6 +76,17 @@ class DatabaseManager {
           total_licenses INTEGER DEFAULT 0,
           total_commands INTEGER DEFAULT 0,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`,
+        `CREATE TABLE IF NOT EXISTS tickets (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          ticket_id TEXT UNIQUE NOT NULL,
+          user_id INTEGER NOT NULL,
+          subject TEXT NOT NULL,
+          description TEXT NOT NULL,
+          status TEXT DEFAULT 'open',
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id)
         )`
       ];
 
@@ -201,6 +212,88 @@ class DatabaseManager {
           });
         })
         .catch(reject);
+    });
+  }
+
+  async createTicket(userId, subject, description) {
+    return new Promise((resolve, reject) => {
+      const ticketId = `TKT-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      this.db.run(
+        `INSERT INTO tickets (ticket_id, user_id, subject, description)
+         VALUES (?, ?, ?, ?)`,
+        [ticketId, userId, subject, description],
+        function(err) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve({ id: this.lastID, ticketId, userId, subject, description, status: 'open' });
+          }
+        }
+      );
+    });
+  }
+
+  async getTickets(userId) {
+    return new Promise((resolve, reject) => {
+      this.db.all(
+        'SELECT * FROM tickets WHERE user_id = ? ORDER BY created_at DESC',
+        [userId],
+        (err, rows) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(rows);
+          }
+        }
+      );
+    });
+  }
+
+  async getTicket(ticketId) {
+    return new Promise((resolve, reject) => {
+      this.db.get(
+        'SELECT * FROM tickets WHERE ticket_id = ?',
+        [ticketId],
+        (err, row) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(row);
+          }
+        }
+      );
+    });
+  }
+
+  async updateTicketStatus(ticketId, status) {
+    return new Promise((resolve, reject) => {
+      this.db.run(
+        'UPDATE tickets SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE ticket_id = ?',
+        [status, ticketId],
+        function(err) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve({ changes: this.changes });
+          }
+        }
+      );
+    });
+  }
+
+  async getAllTickets() {
+    return new Promise((resolve, reject) => {
+      this.db.all(
+        'SELECT * FROM tickets ORDER BY created_at DESC',
+        [],
+        (err, rows) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(rows);
+          }
+        }
+      );
     });
   }
 

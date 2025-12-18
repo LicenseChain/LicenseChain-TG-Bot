@@ -37,6 +37,8 @@ module.exports = {
       // Get app name from environment
       const appName = process.env.LICENSECHAIN_APP_NAME;
       let licenses = [];
+      let licenseError = null;
+      let apiError = null;
 
       if (appName) {
         try {
@@ -64,25 +66,47 @@ module.exports = {
                 return license.issuedEmail || license.issuedTo;
               });
             }
-          } catch (licenseError) {
-            console.error('Error fetching licenses from API:', licenseError.message);
+          } catch (err) {
+            licenseError = err;
+            console.error('Error fetching licenses from API:', err.message);
           }
-        } catch (apiError) {
-          console.error('Error fetching licenses:', apiError.message);
+        } catch (err) {
+          apiError = err;
+          console.error('Error fetching licenses:', err.message);
         }
       }
 
+      // If no licenses found via API, try to show a helpful message
       if (licenses.length === 0) {
-        await bot.editMessageText(
-          `📋 *User Licenses*\n\n` +
-          `User \`${targetUserId}\` has no licenses.\n\n` +
-          `Use /create to create a new license (Admin only).`,
-          {
-            chat_id: chatId,
-            message_id: loadingMsg.message_id,
-            parse_mode: 'Markdown'
-          }
-        );
+        // Check if API call failed due to auth
+        const apiFailed = licenseError || apiError;
+        
+        if (apiFailed) {
+          await bot.editMessageText(
+            `📋 *User Licenses*\n\n` +
+            `⚠️ Could not fetch licenses from API.\n` +
+            `*Reason:* API authentication failed\n\n` +
+            `*Note:* The bot is configured but API authentication needs to be set up.\n` +
+            `Please check your LICENSE_CHAIN_API_KEY configuration.\n\n` +
+            `User \`${targetUserId}\` may have licenses, but they cannot be retrieved at this time.`,
+            {
+              chat_id: chatId,
+              message_id: loadingMsg.message_id,
+              parse_mode: 'Markdown'
+            }
+          );
+        } else {
+          await bot.editMessageText(
+            `📋 *User Licenses*\n\n` +
+            `User \`${targetUserId}\` has no licenses.\n\n` +
+            `Use /create to create a new license (Admin only).`,
+            {
+              chat_id: chatId,
+              message_id: loadingMsg.message_id,
+              parse_mode: 'Markdown'
+            }
+          );
+        }
         return;
       }
 
