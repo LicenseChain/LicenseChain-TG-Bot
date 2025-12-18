@@ -156,6 +156,14 @@ module.exports = {
         `*Plan:* ${plan}\n` +
         `*Status:* Active\n`;
 
+      if (issuedTo) {
+        message += `*Issued To:* ${issuedTo}\n`;
+      }
+      
+      if (issuedEmail) {
+        message += `*Email:* ${issuedEmail}\n`;
+      }
+
       if (expiresAt) {
         message += `*Expires:* ${new Date(expiresAt).toLocaleDateString()}\n`;
       } else {
