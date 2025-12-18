@@ -100,11 +100,21 @@ class LicenseChainClient {
 
   /**
    * Update license
+   * Note: The API only supports PATCH /licenses/:id/status for status updates
+   * For other fields like expiresAt, we need to use the database directly or add an API endpoint
    */
   async updateLicense(licenseId, updateData) {
     try {
-      const response = await this.client.put(`/v1/licenses/${licenseId}`, updateData);
-      return response.data;
+      // If updating status, use the status endpoint
+      if (updateData.status && Object.keys(updateData).length === 1) {
+        const response = await this.client.patch(`/v1/licenses/${licenseId}/status`, { status: updateData.status });
+        return response.data;
+      }
+      
+      // For other updates (like expiresAt), we need to use database directly
+      // Since the API doesn't have a general update endpoint, we'll need to add one
+      // For now, throw an error indicating this feature needs API support
+      throw new Error('License updates other than status require API endpoint support. Please use /update <license-key> status <status> for status updates.');
     } catch (error) {
       throw new Error(`Failed to update license: ${error.response?.data?.message || error.message}`);
     }

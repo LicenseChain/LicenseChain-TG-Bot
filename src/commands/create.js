@@ -91,8 +91,9 @@ module.exports = {
         expiresAt = expiresAt.toISOString();
       }
 
-      // Create license data (appId is passed as URL parameter, not in body)
+      // Create license data (API requires appId in body even though it's in URL)
       const licenseData = {
+        appId: appId,
         plan: plan,
         expiresAt: expiresAt
       };
