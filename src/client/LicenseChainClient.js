@@ -48,8 +48,9 @@ class LicenseChainClient {
    */
   async validateLicense(licenseKey, hardwareId = null) {
     try {
-      const response = await this.client.post('/api/licenses/validate', {
-        licenseKey,
+      // Use /licenses/verify endpoint with 'key' parameter to match API
+      const response = await this.client.post('/api/licenses/verify', {
+        key: licenseKey,
         hardwareId: hardwareId || 'telegram-bot'
       });
       return response.data;

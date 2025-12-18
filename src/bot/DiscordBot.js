@@ -121,8 +121,9 @@ class LicenseChainDiscordBot {
         const licenseKey = interaction.options.getString('license_key');
         
         try {
-            const response = await this.licenseChainAPI.post('/licenses/validate', {
-                license_key: licenseKey,
+            // Use /licenses/verify endpoint with 'key' parameter to match API
+            const response = await this.licenseChainAPI.post('/licenses/verify', {
+                key: licenseKey,
                 app_id: this.config.licenseChain.appId
             });
 
@@ -165,8 +166,9 @@ class LicenseChainDiscordBot {
         const licenseKey = interaction.options.getString('license_key');
         
         try {
-            const response = await this.licenseChainAPI.post('/licenses/validate', {
-                license_key: licenseKey,
+            // Use /licenses/verify endpoint with 'key' parameter to match API
+            const response = await this.licenseChainAPI.post('/licenses/verify', {
+                key: licenseKey,
                 app_id: this.config.licenseChain.appId
             });
 
@@ -809,8 +811,9 @@ class LicenseChainDiscordBot {
 
     async validateLicenseDM(message, licenseKey) {
         try {
-            const response = await this.licenseChainAPI.post('/licenses/validate', {
-                license_key: licenseKey,
+            // Use /licenses/verify endpoint with 'key' parameter to match API
+            const response = await this.licenseChainAPI.post('/licenses/verify', {
+                key: licenseKey,
                 app_id: this.config.licenseChain.appId
             });
 
