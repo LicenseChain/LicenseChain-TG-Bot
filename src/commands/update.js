@@ -1,10 +1,10 @@
 /**
- * Update License Command (Admin only)
+ * Update Command - Update license or ticket status (Admin only)
  */
 
 module.exports = {
   name: 'update',
-  description: 'Update a license (Admin only)',
+  description: 'Update a license or ticket status (Admin only)',
   
   async execute(msg, bot, licenseClient, dbManager) {
     const chatId = msg.chat.id;
@@ -24,7 +24,37 @@ module.exports = {
       return;
     }
 
-    // Parse command: /update <license-key> <field> <value>
+    // Parse command: /update <license-key|ticket-id> <field|status> <value>
+    if (args.length < 2) {
+      await bot.sendMessage(chatId, 
+        '❌ *Usage:*\n\n' +
+        'Update license: `/update <license_key> <field> <value>`\n' +
+        'Update ticket: `/update <ticket-id> <status>`\n\n' +
+        'License Examples:\n' +
+        '  `/update LC-ABC123-DEF456-GHI789 status ACTIVE`\n' +
+        '  `/update LC-ABC123-DEF456-GHI789 plan PRO`\n\n' +
+        'Ticket Examples:\n' +
+        '  `/update TKT-1234567890-ABC123 open`\n' +
+        '  `/update TKT-1234567890-ABC123 pending`\n' +
+        '  `/update TKT-1234567890-ABC123 closed`\n\n' +
+        'License Fields: status, plan, expiresAt, issuedTo, issuedEmail\n' +
+        'Ticket Statuses: open, pending, closed',
+        { parse_mode: 'Markdown' }
+      );
+      return;
+    }
+
+    const firstArg = args[0];
+    const ticketIdPattern = /^TKT-\d+-[A-Z0-9]+$/i;
+    
+    // Check if it's a ticket ID
+    if (ticketIdPattern.test(firstArg)) {
+      // Handle ticket status update
+      await this.updateTicketStatus(msg, bot, licenseClient, dbManager, firstArg, args[1]);
+      return;
+    }
+
+    // Handle license update
     if (args.length < 3) {
       await bot.sendMessage(chatId, 
         '❌ *Usage:* `/update <license_key> <field> <value>`\n\n' +
@@ -37,7 +67,7 @@ module.exports = {
       return;
     }
 
-    const licenseKey = args[0];
+    const licenseKey = firstArg;
     const field = args[1].toLowerCase();
     const value = args.slice(2).join(' ');
 
@@ -149,6 +179,83 @@ module.exports = {
       }).catch(() => {
         bot.sendMessage(chatId, errorMessage, { parse_mode: 'Markdown' });
       });
+    }
+  },
+
+  async updateTicketStatus(msg, bot, licenseClient, dbManager, ticketId, status) {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+
+    // Validate status
+    const validStatuses = ['open', 'pending', 'closed'];
+    if (!validStatuses.includes(status.toLowerCase())) {
+      await bot.sendMessage(chatId, 
+        `❌ *Invalid Status*\n\n` +
+        `Status must be one of: ${validStatuses.join(', ')}\n` +
+        `You provided: ${status}`,
+        { parse_mode: 'Markdown' }
+      );
+      return;
+    }
+
+    try {
+      const loadingMsg = await bot.sendMessage(chatId, '🔄 Updating ticket status...');
+
+      // Check if ticket exists
+      const ticket = await dbManager.getTicket(ticketId);
+      
+      if (!ticket) {
+        await bot.editMessageText(
+          `❌ *Ticket Not Found*\n\n` +
+          `Ticket ID \`${ticketId}\` was not found.`,
+          {
+            chat_id: chatId,
+            message_id: loadingMsg.message_id,
+            parse_mode: 'Markdown'
+          }
+        );
+        return;
+      }
+
+      // Update ticket status
+      await dbManager.updateTicketStatus(ticketId, status.toLowerCase());
+
+      const message = `✅ *Ticket Status Updated*\n\n` +
+        `*Ticket ID:* \`${ticketId}\`\n` +
+        `*Subject:* ${ticket.subject}\n` +
+        `*Old Status:* ${ticket.status.toUpperCase()}\n` +
+        `*New Status:* ${status.toUpperCase()}\n` +
+        `*Updated By:* ${msg.from.username || msg.from.id}\n` +
+        `*Date:* ${new Date().toLocaleString()}`;
+
+      await bot.editMessageText(message, {
+        chat_id: chatId,
+        message_id: loadingMsg.message_id,
+        parse_mode: 'Markdown'
+      });
+
+      // Optionally notify the ticket creator
+      try {
+        await bot.sendMessage(ticket.user_id, 
+          `🎫 *Ticket Status Updated*\n\n` +
+          `Your ticket \`${ticketId}\` status has been updated.\n` +
+          `Subject: ${ticket.subject}\n` +
+          `New Status: ${status.toUpperCase()}\n\n` +
+          `Use \`/ticket ${ticketId}\` to view ticket details.`,
+          { parse_mode: 'Markdown' }
+        );
+      } catch (error) {
+        console.warn('Could not notify ticket creator:', error.message);
+      }
+
+    } catch (error) {
+      console.error('Error updating ticket status:', error);
+      await bot.sendMessage(chatId, 
+        `❌ *Error*\n\n` +
+        `An error occurred while updating ticket status:\n` +
+        `\`${error.message}\``,
+        { parse_mode: 'Markdown' }
+      );
     }
   }
 };
