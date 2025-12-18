@@ -42,8 +42,10 @@ class CommandHandler {
   setupCommandHandlers() {
     this.bot.on('message', async (msg) => {
       if (msg.text && msg.text.startsWith('/')) {
-        // Check bot status before processing commands (except status/setstatus commands)
+        // Extract command name
         const commandName = msg.text.split(' ')[0].substring(1);
+        
+        // Check bot status before processing commands (except status/setstatus commands)
         if (commandName !== 'status' && commandName !== 'setstatus') {
           try {
             const botStatus = await this.dbManager.getBotStatus();
@@ -79,7 +81,6 @@ class CommandHandler {
           }
         }
 
-        const commandName = msg.text.split(' ')[0].substring(1);
         const command = this.commands.get(commandName);
         
         if (command) {
