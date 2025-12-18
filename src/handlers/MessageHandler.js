@@ -238,23 +238,52 @@ class MessageHandler {
       const userId = query.from.id;
       const user = await this.dbManager.getUser(userId);
       
-      if (user) {
-        const profileMessage = `👤 *Your Profile*\n\n` +
-          `*User ID:* ${user.telegram_id}\n` +
-          `*Username:* ${user.username || 'Not set'}\n` +
-          `*Name:* ${user.first_name || ''} ${user.last_name || ''}\n` +
-          `*Member since:* ${new Date(user.created_at).toLocaleDateString()}\n\n` +
-          `*Statistics:*\n` +
-          `📋 Licenses: 0\n` +
-          `✅ Validations: 0\n\n` +
-          `Use /profile to update your information.`;
-        
-        await this.bot.sendMessage(query.message.chat.id, profileMessage, {
-          parse_mode: 'Markdown'
+      if (!user) {
+        // Create user if doesn't exist
+        await this.dbManager.getOrCreateUser({
+          id: userId,
+          username: query.from.username,
+          first_name: query.from.first_name,
+          last_name: query.from.last_name
         });
-      } else {
-        await this.bot.sendMessage(query.message.chat.id, '❌ Profile not found. Please use /start to register.');
+        await this.bot.sendMessage(query.message.chat.id, '✅ Profile created! Use /profile again to see your information.');
+        return;
       }
+      
+      // Get licenses from LicenseChain API if app name is configured
+      let apiLicenses = [];
+      let appName = process.env.LICENSECHAIN_APP_NAME;
+      
+      if (appName) {
+        try {
+          const app = await this.licenseClient.getAppByName(appName);
+          if (app && app.id) {
+            const licensesData = await this.licenseClient.getAppLicenses(app.id);
+            apiLicenses = licensesData?.licenses || licensesData || [];
+          }
+        } catch (apiError) {
+          this.logger.error('Error fetching licenses from API:', apiError);
+          // Continue with local stats if API fails
+        }
+      }
+      
+      const totalLicenses = apiLicenses.length;
+      const activeLicenses = apiLicenses.filter(l => l.status?.toLowerCase() === 'active').length;
+      
+      const profileMessage = `👤 *Your Profile*\n\n` +
+        `*User ID:* ${user.telegram_id}\n` +
+        `*Username:* ${user.username || 'Not set'}\n` +
+        `*Name:* ${user.first_name || ''} ${user.last_name || ''}\n` +
+        `*Member since:* ${new Date(user.created_at).toLocaleDateString()}\n\n` +
+        `*Statistics:*\n` +
+        `📋 Licenses: ${totalLicenses}\n` +
+        `✅ Active Licenses: ${activeLicenses}\n` +
+        `✅ Validations: 0\n\n` +
+        `Use /profile to update your information.`;
+      
+      await this.bot.sendMessage(query.message.chat.id, profileMessage, {
+        parse_mode: 'Markdown'
+      });
     } catch (error) {
       this.logger.error('Error showing profile:', error);
       await this.bot.answerCallbackQuery(query.id, { text: 'Error showing profile' });

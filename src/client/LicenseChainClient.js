@@ -204,15 +204,53 @@ class LicenseChainClient {
   }
 
   /**
-   * Get app by name
+   * Get app by name or slug
    */
   async getAppByName(appName) {
     try {
       const response = await this.client.get('/v1/apps');
       const apps = response.data?.apps || response.data || [];
-      return apps.find(app => app.name === appName || app.id === appName);
+      // Try to find by name, slug, or id
+      return apps.find(app => 
+        app.name === appName || 
+        app.slug === appName || 
+        app.id === appName
+      );
     } catch (error) {
+      // If API requires auth and fails, try using appName as appId directly
+      if (error.response?.status === 401) {
+        console.warn('API authentication failed, trying appName as appId');
+        // Return a mock app object with the appName as id
+        return { id: appName, name: appName, slug: appName };
+      }
       throw new Error(`Failed to get app: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Get all licenses (for authenticated user's apps)
+   */
+  async getAllLicenses() {
+    try {
+      const response = await this.client.get('/v1/apps');
+      const apps = response.data?.apps || response.data || [];
+      let allLicenses = [];
+      
+      // Fetch licenses for each app
+      for (const app of apps) {
+        try {
+          const licensesData = await this.getAppLicenses(app.id);
+          const licenses = licensesData?.licenses || licensesData || [];
+          allLicenses = allLicenses.concat(licenses);
+        } catch (err) {
+          // Continue if one app fails
+          console.error(`Failed to get licenses for app ${app.id}:`, err.message);
+        }
+      }
+      
+      return allLicenses;
+    } catch (error) {
+      throw new Error(`Failed to get all licenses: ${error.response?.data?.message || error.message}`);
     }
   }
 

@@ -56,33 +56,33 @@ class HelpCommand {
 
 *How to Use:*
 
-1️⃣ *Validate License:*
-   Send: \`/validate YOUR_LICENSE_KEY\`
+1️⃣ Validate License:
+   Send: /validate YOUR_LICENSE_KEY
    Or just send the license key directly
 
-2️⃣ *Create License:*
-   Send: \`/create user123 product456\`
+2️⃣ Create License:
+   Send: /create user123 product456
    (Admin only)
 
-3️⃣ *Get Your Info:*
-   Send: \`/info\` to see your user information
+3️⃣ Get Your Info:
+   Send: /info to see your user information
 
-4️⃣ *List Licenses:*
-   Send: \`/list\` to see all your licenses
+4️⃣ List Licenses:
+   Send: /list to see all your licenses
 
-5️⃣ *Revoke License:*
-   Send: \`/revoke YOUR_LICENSE_KEY\`
+5️⃣ Revoke License:
+   Send: /revoke YOUR_LICENSE_KEY
    (Admin only)
 
-6️⃣ *Extend License:*
-   Send: \`/extend YOUR_LICENSE_KEY 30\`
+6️⃣ Extend License:
+   Send: /extend YOUR_LICENSE_KEY 30
    (Admin only)
 
-7️⃣ *Get Statistics:*
-   Send: \`/stats\` to see license statistics
+7️⃣ Get Statistics:
+   Send: /stats to see license statistics
 
-8️⃣ *Settings:*
-   Send: \`/settings\` to manage your preferences
+8️⃣ Settings:
+   Send: /settings to manage your preferences
 
 *Features:*
 
