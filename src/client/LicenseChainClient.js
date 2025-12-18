@@ -60,11 +60,12 @@ class LicenseChainClient {
   }
 
   /**
-   * Get license information
+   * Get license information by key (via verification endpoint)
    */
-  async getLicense(licenseId) {
+  async getLicense(licenseKey) {
     try {
-      const response = await this.client.get(`/api/licenses/${licenseId}`);
+      // Use verify endpoint to get license info
+      const response = await this.client.post('/v1/licenses/verify', { key: licenseKey });
       return response.data;
     } catch (error) {
       throw new Error(`Failed to get license: ${error.response?.data?.message || error.message}`);
@@ -262,7 +263,7 @@ class LicenseChainClient {
       const response = await axios.post(webhookUrl, data, {
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': 'LicenseChain-Telegram-Bot/1.0.0'
+          'User-Agent': `LicenseChain-Telegram-Bot/${process.env.LICENSECHAIN_APP_VERSION || '1.0.0'}`
         }
       });
       return response.data;

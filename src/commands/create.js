@@ -53,8 +53,9 @@ module.exports = {
       return;
     }
 
+    let loadingMsg = null;
     try {
-      const loadingMsg = await bot.sendMessage(chatId, '🔄 Creating license...');
+      loadingMsg = await bot.sendMessage(chatId, '🔄 Creating license...');
 
       // Get app name from environment
       const appName = process.env.LICENSECHAIN_APP_NAME;
@@ -97,8 +98,8 @@ module.exports = {
         expiresAt: expiresAt
       };
 
-      // Create license via API
-      const result = await licenseClient.createLicense(licenseData);
+      // Create license via API (endpoint: /v1/apps/:appId/licenses)
+      const result = await licenseClient.createLicense(appId, licenseData);
 
       let message = `✅ *License Created*\n\n` +
         `*License Key:* \`${result.licenseKey || result.key || 'N/A'}\`\n` +
@@ -141,13 +142,18 @@ module.exports = {
         `\`${error.message}\`\n\n` +
         `Please check the API configuration and try again.`;
 
-      await bot.editMessageText(errorMessage, {
-        chat_id: chatId,
-        message_id: loadingMsg.message_id,
-        parse_mode: 'Markdown'
-      }).catch(() => {
-        bot.sendMessage(chatId, errorMessage, { parse_mode: 'Markdown' });
-      });
+      // Check if loadingMsg exists before trying to edit it
+      if (typeof loadingMsg !== 'undefined' && loadingMsg && loadingMsg.message_id) {
+        await bot.editMessageText(errorMessage, {
+          chat_id: chatId,
+          message_id: loadingMsg.message_id,
+          parse_mode: 'Markdown'
+        }).catch(() => {
+          bot.sendMessage(chatId, errorMessage, { parse_mode: 'Markdown' });
+        });
+      } else {
+        await bot.sendMessage(chatId, errorMessage, { parse_mode: 'Markdown' });
+      }
     }
   }
 };
