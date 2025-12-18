@@ -1,4 +1,4 @@
-# LicenseChain Telegram Bot
+﻿# LicenseChain Telegram Bot
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-16+-green.svg)](https://nodejs.org/)
