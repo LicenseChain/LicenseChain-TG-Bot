@@ -73,12 +73,35 @@ class LicenseChainClient {
   }
 
   /**
-   * Get user licenses
+   * Get user licenses (filtered from app licenses by email/issuedTo)
+   * Note: API doesn't have a direct user licenses endpoint, so we filter app licenses
    */
   async getUserLicenses(userId) {
     try {
-      const response = await this.client.get(`/api/users/${userId}/licenses`);
-      return response.data;
+      // Get all app licenses and filter by user
+      const appName = process.env.LICENSECHAIN_APP_NAME;
+      if (!appName) {
+        throw new Error('LICENSECHAIN_APP_NAME not configured');
+      }
+      
+      let appId = appName;
+      try {
+        const app = await this.getAppByName(appName);
+        if (app && app.id) {
+          appId = app.id;
+        }
+      } catch (appError) {
+        console.warn('Could not fetch app info:', appError.message);
+      }
+      
+      const licensesData = await this.getAppLicenses(appId);
+      const allLicenses = licensesData?.licenses || licensesData || [];
+      
+      // Filter licenses by userId (email or issuedTo matching)
+      // Note: This is a simplified filter - adjust based on your data structure
+      return allLicenses.filter(license => {
+        return license.issuedEmail === userId || license.issuedTo === userId || license.email === userId;
+      });
     } catch (error) {
       throw new Error(`Failed to get user licenses: ${error.response?.data?.message || error.message}`);
     }
@@ -143,13 +166,16 @@ class LicenseChainClient {
 
   /**
    * Get user information
+   * Note: API doesn't have a direct user endpoint, returns null to use local DB
    */
   async getUser(userId) {
     try {
-      const response = await this.client.get(`/api/users/${userId}`);
-      return response.data;
+      // API doesn't have user endpoints, return null to use local database
+      // This allows the /user command to fall back to local DB
+      return null;
     } catch (error) {
-      throw new Error(`Failed to get user: ${error.response?.data?.message || error.message}`);
+      // Return null on error to allow fallback to local DB
+      return null;
     }
   }
 

@@ -65,6 +65,23 @@ class MessageHandler {
 
     this.logger.info(`Text message from user ${userId} in chat ${chatId}: ${text}`);
 
+    // Check bot status
+    try {
+      const botStatus = await this.dbManager.getBotStatus();
+      if (botStatus === 'offline') {
+        await this.bot.sendMessage(chatId, 
+          '❌ *Bot is Offline*\n\n' +
+          'The bot is currently offline and not accepting messages.\n' +
+          'Please contact an administrator or try again later.',
+          { parse_mode: 'Markdown' }
+        );
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking bot status:', error);
+      // Continue if status check fails
+    }
+
     // Check if it's a license key format
     if (this.isLicenseKey(text)) {
       await this.handleLicenseKeyInput(msg, text);
@@ -96,6 +113,18 @@ class MessageHandler {
     this.logger.info(`Callback query from user ${userId} in chat ${chatId}: ${data}`);
 
     try {
+      // Check bot status
+      const botStatus = await this.dbManager.getBotStatus();
+      if (botStatus === 'offline') {
+        await this.bot.answerCallbackQuery(query.id, { text: 'Bot is offline' });
+        await this.bot.sendMessage(chatId, 
+          '❌ *Bot is Offline*\n\n' +
+          'The bot is currently offline and not accepting requests.',
+          { parse_mode: 'Markdown' }
+        );
+        return;
+      }
+
       // Parse callback data (format: action:param1:param2)
       const [action, ...params] = data.split(':');
 
@@ -121,8 +150,32 @@ class MessageHandler {
         case 'show_analytics':
           await this.handleShowAnalyticsCallback(query);
           break;
+        case 'create_ticket':
+          await this.handleCreateTicketCallback(query);
+          break;
+        case 'list_tickets':
+          await this.handleListTicketsCallback(query);
+          break;
+        case 'close_ticket':
+          await this.handleCloseTicketCallback(query, params);
+          break;
         default:
-          await this.bot.answerCallbackQuery(query.id, { text: 'Unknown action' });
+          // Handle callback data without colon separator
+          if (data.startsWith('close_ticket_')) {
+            const ticketId = data.replace('close_ticket_', '');
+            await this.handleCloseTicketCallback(query, [ticketId]);
+          } else if (data.startsWith('license_info_')) {
+            const licenseKey = data.replace('license_info_', '');
+            await this.handleLicenseInfoCallback(query, licenseKey);
+          } else if (data.startsWith('license_analytics_')) {
+            const licenseKey = data.replace('license_analytics_', '');
+            await this.handleLicenseAnalyticsCallback(query, licenseKey);
+          } else if (data.startsWith('extend_license_')) {
+            const licenseKey = data.replace('extend_license_', '');
+            await this.handleExtendLicenseCallback(query, licenseKey);
+          } else {
+            await this.bot.answerCallbackQuery(query.id, { text: 'Unknown action' });
+          }
           break;
       }
     } catch (error) {
@@ -367,12 +420,195 @@ class MessageHandler {
     }
   }
 
+  async handleCreateTicketCallback(query) {
+    try {
+      await this.bot.answerCallbackQuery(query.id, { text: 'Creating ticket...' });
+      await this.bot.sendMessage(query.message.chat.id, 
+        '🎫 *Create Support Ticket*\n\n' +
+        'Please use the following format:\n' +
+        '`/ticket <subject> <description>`\n\n' +
+        'Example:\n' +
+        '`/ticket "Login Issue" "Cannot login to dashboard"`\n\n' +
+        'Note: Use quotes for multi-word subject or description.',
+        { parse_mode: 'Markdown' }
+      );
+    } catch (error) {
+      this.logger.error('Error handling create ticket callback:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error' });
+    }
+  }
+
+  async handleListTicketsCallback(query) {
+    try {
+      await this.bot.answerCallbackQuery(query.id, { text: 'Loading tickets...' });
+      
+      // Delegate to tickets command
+      const ticketsCommand = require('../commands/tickets');
+      const mockMsg = {
+        chat: { id: query.message.chat.id },
+        from: query.from,
+        text: '/tickets'
+      };
+      await ticketsCommand.execute(mockMsg, this.bot, this.licenseClient, this.dbManager);
+    } catch (error) {
+      this.logger.error('Error handling list tickets callback:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error loading tickets' });
+    }
+  }
+
+  async handleCloseTicketCallback(query, params) {
+    try {
+      const ticketId = params && params.length > 0 ? params[0] : null;
+      
+      if (!ticketId) {
+        await this.bot.answerCallbackQuery(query.id, { text: 'Ticket ID required' });
+        return;
+      }
+
+      await this.bot.answerCallbackQuery(query.id, { text: 'Closing ticket...' });
+      
+      // Check admin permissions
+      const adminUsers = process.env.ADMIN_USERS ? process.env.ADMIN_USERS.split(',').map(id => id.trim()) : [];
+      const botOwnerId = process.env.BOT_OWNER_ID;
+      const userId = query.from.id;
+      
+      if (!adminUsers.includes(userId.toString()) && userId.toString() !== botOwnerId) {
+        await this.bot.sendMessage(query.message.chat.id, 
+          '❌ *Access Denied*\n\n' +
+          'This action is restricted to administrators only.',
+          { parse_mode: 'Markdown' }
+        );
+        return;
+      }
+
+      // Delegate to close command
+      const closeCommand = require('../commands/close');
+      const mockMsg = {
+        chat: { id: query.message.chat.id },
+        from: query.from,
+        text: `/close ${ticketId}`
+      };
+      await closeCommand.execute(mockMsg, this.bot, this.licenseClient, this.dbManager);
+    } catch (error) {
+      this.logger.error('Error handling close ticket callback:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error closing ticket' });
+    }
+  }
+
   async handleCreateCallback(query, params) {
     await this.bot.answerCallbackQuery(query.id, { text: 'License creation not implemented yet' });
   }
 
   async handleListCallback(query, params) {
-    await this.bot.answerCallbackQuery(query.id, { text: 'License listing not implemented yet' });
+    try {
+      await this.bot.answerCallbackQuery(query.id, { text: 'Loading licenses...' });
+      
+      // Delegate to list command
+      const listCommand = require('../commands/list');
+      const mockMsg = {
+        chat: { id: query.message.chat.id },
+        from: query.from,
+        text: '/list'
+      };
+      await listCommand.execute(mockMsg, this.bot, this.licenseClient, this.dbManager);
+    } catch (error) {
+      this.logger.error('Error handling list callback:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error loading licenses' });
+    }
+  }
+
+  async handleLicenseInfoCallback(query, licenseKey) {
+    try {
+      await this.bot.answerCallbackQuery(query.id, { text: 'Loading license info...' });
+      
+      // Delegate to info command
+      const infoCommand = require('../commands/info');
+      const mockMsg = {
+        chat: { id: query.message.chat.id },
+        from: query.from,
+        text: `/info ${licenseKey}`
+      };
+      await infoCommand.execute(mockMsg, this.bot, this.licenseClient, this.dbManager);
+    } catch (error) {
+      this.logger.error('Error handling license info callback:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error loading license info' });
+    }
+  }
+
+  async handleLicenseAnalyticsCallback(query, licenseKey) {
+    try {
+      await this.bot.answerCallbackQuery(query.id, { text: 'Loading license analytics...' });
+      
+      // Try to get license analytics from API
+      try {
+        const analytics = await this.licenseClient.getLicenseAnalytics(licenseKey, '30d');
+        
+        const message = `📊 *License Analytics*\n\n` +
+          `*License Key:* \`${licenseKey}\`\n\n` +
+          `*Usage Statistics:*\n` +
+          `📈 Total Validations: ${analytics?.totalValidations || 0}\n` +
+          `📅 Last Validated: ${analytics?.lastValidated ? new Date(analytics.lastValidated).toLocaleDateString() : 'Never'}\n` +
+          `🌍 Locations: ${analytics?.locations?.length || 0}\n` +
+          `📊 Status: ${analytics?.status || 'Active'}\n\n` +
+          `Use /info ${licenseKey} for more details.`;
+        
+        await this.bot.sendMessage(query.message.chat.id, message, {
+          parse_mode: 'Markdown'
+        });
+      } catch (error) {
+        // If analytics not available, show basic info
+        await this.bot.sendMessage(query.message.chat.id,
+          `📊 *License Analytics*\n\n` +
+          `*License Key:* \`${licenseKey}\`\n\n` +
+          `Analytics data is not available for this license.\n` +
+          `Use /info ${licenseKey} to view license details.`,
+          { parse_mode: 'Markdown' }
+        );
+      }
+    } catch (error) {
+      this.logger.error('Error handling license analytics callback:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error loading analytics' });
+    }
+  }
+
+  async handleExtendLicenseCallback(query, licenseKey) {
+    try {
+      await this.bot.answerCallbackQuery(query.id, { text: 'Extend license' });
+      
+      await this.bot.sendMessage(query.message.chat.id,
+        `🔄 *Extend License*\n\n` +
+        `To extend license \`${licenseKey}\`, use:\n` +
+        `\`/extend ${licenseKey} <days>\`\n\n` +
+        `Example: \`/extend ${licenseKey} 30\`\n\n` +
+        `This will extend the license expiration by the specified number of days.`,
+        { parse_mode: 'Markdown' }
+      );
+    } catch (error) {
+      this.logger.error('Error handling extend license callback:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error' });
+    }
+  }
+
+  async handleCreateCallback(query, params) {
+    try {
+      await this.bot.answerCallbackQuery(query.id, { text: 'Create license' });
+      
+      await this.bot.sendMessage(query.message.chat.id,
+        `➕ *Create License*\n\n` +
+        `To create a new license, use:\n` +
+        `\`/create <user-id> <features> <expires>\`\n\n` +
+        `Example: \`/create tester FREE 2025-12-31\`\n` +
+        `Example: \`/create user@example.com PRO 30\`\n` +
+        `Example: \`/create John Doe BUSINESS 365\`\n\n` +
+        `*user-id:* Name or email address (can be multiple words)\n` +
+        `*features:* FREE, PRO, BUSINESS, ENTERPRISE\n` +
+        `*expires:* Date (YYYY-MM-DD) or days from now`,
+        { parse_mode: 'Markdown' }
+      );
+    } catch (error) {
+      this.logger.error('Error handling create callback:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error' });
+    }
   }
 
   isLicenseKey(text) {
