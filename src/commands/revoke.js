@@ -56,8 +56,8 @@ module.exports = {
         return;
       }
 
-      // Try to revoke via API (may need to use licenseKey as ID)
-      const licenseId = licenseKey; // API might use licenseKey as identifier
+      // API supports finding licenses by licenseKey, so we can use the key directly
+      const licenseId = licenseKey;
       
       try {
         const result = await licenseClient.revokeLicense(licenseId);

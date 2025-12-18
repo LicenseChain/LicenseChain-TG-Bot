@@ -86,7 +86,7 @@ module.exports = {
     try {
       const loadingMsg = await bot.sendMessage(chatId, '🔄 Updating license...');
 
-      // First, get the license to find its ID
+      // First, validate the license exists
       const validationResult = await licenseClient.validateLicense(licenseKey);
       
       if (!validationResult.valid) {
@@ -128,10 +128,10 @@ module.exports = {
         updateData.issuedEmail = value;
       }
 
-      // Try to get license ID (may need to use licenseKey as ID)
-      const licenseId = licenseKey; // API might use licenseKey as identifier
+      // API supports finding licenses by licenseKey, so we can use the key directly
+      const licenseId = licenseKey;
 
-      // Update license via API
+      // Update license via API (API will find by key if not found by ID)
       const result = await licenseClient.updateLicense(licenseId, updateData);
 
       let message = `✅ *License Updated*\n\n` +
