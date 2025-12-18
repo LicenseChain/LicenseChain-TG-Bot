@@ -7,7 +7,7 @@
 
 Official Telegram Bot for LicenseChain - License management and customer support through Telegram.
 
-## ðŸš€ Features
+## 🚀 Features
 
 - **ðŸ” License Management** - Validate, create, and manage licenses
 - **ðŸ‘¤ User Support** - Handle customer inquiries and support tickets
