@@ -86,10 +86,12 @@ class LicenseChainClient {
 
   /**
    * Create a new license
+   * @param {string} appId - The application ID
+   * @param {object} licenseData - License data (plan, expiresAt, etc.)
    */
-  async createLicense(licenseData) {
+  async createLicense(appId, licenseData) {
     try {
-      const response = await this.client.post('/api/licenses', licenseData);
+      const response = await this.client.post(`/v1/apps/${appId}/licenses`, licenseData);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to create license: ${error.response?.data?.message || error.message}`);
