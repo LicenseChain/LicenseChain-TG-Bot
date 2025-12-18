@@ -25,10 +25,25 @@ module.exports = {
       
       if (appName) {
         try {
-          const app = await licenseClient.getAppByName(appName);
-          if (app && app.id) {
-            const licensesData = await licenseClient.getAppLicenses(app.id);
+          // Try to get app first, or use appName directly as appId
+          let appId = appName;
+          try {
+            const app = await licenseClient.getAppByName(appName);
+            if (app && app.id) {
+              appId = app.id;
+            }
+          } catch (appError) {
+            // If app lookup fails, use appName as appId directly
+            console.warn('Could not fetch app info, using appName as appId:', appError.message);
+          }
+          
+          // Try to fetch licenses
+          try {
+            const licensesData = await licenseClient.getAppLicenses(appId);
             apiLicenses = licensesData?.licenses || licensesData || [];
+          } catch (licenseError) {
+            console.error('Error fetching licenses from API:', licenseError.message);
+            // Continue with local stats if API fails
           }
         } catch (apiError) {
           console.error('Error fetching licenses from API:', apiError.message);

@@ -42,6 +42,23 @@ class CommandHandler {
   setupCommandHandlers() {
     this.bot.on('message', async (msg) => {
       if (msg.text && msg.text.startsWith('/')) {
+        // Handle /m licenses command specially
+        if (msg.text.toLowerCase().startsWith('/m ')) {
+          const mCommand = this.commands.get('m');
+          if (mCommand) {
+            try {
+              await this.dbManager.logCommand(msg.from.id, 'm').catch(err => {
+                console.error('Error logging command:', err);
+              });
+              await mCommand.execute(msg, this.bot, this.licenseClient, this.dbManager);
+            } catch (error) {
+              console.error(`Error executing command m:`, error);
+              await this.bot.sendMessage(msg.chat.id, '❌ An error occurred while processing your command.');
+            }
+            return;
+          }
+        }
+
         const commandName = msg.text.split(' ')[0].substring(1);
         const command = this.commands.get(commandName);
         
