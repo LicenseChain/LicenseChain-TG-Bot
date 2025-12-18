@@ -3,6 +3,9 @@
  * Advanced Telegram integration for license management
  */
 
+// Load environment variables first
+require('dotenv').config();
+
 const TelegramBot = require('node-telegram-bot-api');
 const winston = require('winston');
 const cron = require('node-cron');

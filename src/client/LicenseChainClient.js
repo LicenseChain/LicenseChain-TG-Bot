@@ -17,7 +17,7 @@ class LicenseChainClient {
       headers: {
         'Authorization': `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
-        'User-Agent': 'LicenseChain-Telegram-Bot/1.0.0'
+        'User-Agent': `LicenseChain-Telegram-Bot/${process.env.LICENSECHAIN_APP_VERSION || '1.0.0'}`
       }
     });
 

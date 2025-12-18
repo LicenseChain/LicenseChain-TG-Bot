@@ -99,7 +99,7 @@ class HelpCommand {
 
 If you need help, contact our support team or visit our documentation.
 
-*Version:* 1.0.0
+*Version:* ${process.env.LICENSECHAIN_APP_VERSION || '1.0.0'}
 *Last Updated:* ${new Date().toLocaleDateString()}`;
     }
 
