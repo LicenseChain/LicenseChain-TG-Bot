@@ -109,6 +109,18 @@ class MessageHandler {
         case 'list_licenses':
           await this.handleListCallback(query, params);
           break;
+        case 'show_help':
+          await this.handleShowHelpCallback(query);
+          break;
+        case 'show_settings':
+          await this.handleShowSettingsCallback(query);
+          break;
+        case 'show_profile':
+          await this.handleShowProfileCallback(query);
+          break;
+        case 'show_analytics':
+          await this.handleShowAnalyticsCallback(query);
+          break;
         default:
           await this.bot.answerCallbackQuery(query.id, { text: 'Unknown action' });
           break;
@@ -141,7 +153,11 @@ class MessageHandler {
     const [licenseKey] = params;
     
     if (!licenseKey) {
-      await this.bot.answerCallbackQuery(query.id, { text: 'No license key provided' });
+      // If no license key provided, ask user to send one
+      await this.bot.answerCallbackQuery(query.id, { text: 'Please send me a license key to validate' });
+      await this.bot.sendMessage(query.message.chat.id, '🔑 Please send me your license key to validate it.\n\nFormat: `LC-XXXXXX-XXXXXX-XXXXXX` or a 32-character alphanumeric key.', {
+        parse_mode: 'Markdown'
+      });
       return;
     }
     
@@ -158,6 +174,115 @@ class MessageHandler {
     } catch (error) {
       this.logger.error('Error validating license:', error);
       await this.bot.answerCallbackQuery(query.id, { text: 'Error validating license' });
+    }
+  }
+
+  async handleShowHelpCallback(query) {
+    try {
+      await this.bot.answerCallbackQuery(query.id, { text: 'Help information' });
+      
+      const helpMessage = `📚 *LicenseChain Bot Help*\n\n` +
+        `*Available Commands:*\n` +
+        `/start - Start the bot and get welcome message\n` +
+        `/help - Show this help message\n` +
+        `/validate <key> - Validate a license key\n` +
+        `/license - Manage your licenses\n` +
+        `/analytics - View analytics and statistics\n` +
+        `/profile - Manage your profile\n` +
+        `/settings - Bot settings\n\n` +
+        `*How to use:*\n` +
+        `1. Send a license key directly to validate it\n` +
+        `2. Use the menu buttons for quick actions\n` +
+        `3. Type /help anytime for assistance\n\n` +
+        `*Need more help?*\n` +
+        `Visit: https://docs.licensechain.app/telegram-bot`;
+      
+      await this.bot.sendMessage(query.message.chat.id, helpMessage, {
+        parse_mode: 'Markdown'
+      });
+    } catch (error) {
+      this.logger.error('Error showing help:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error showing help' });
+    }
+  }
+
+  async handleShowSettingsCallback(query) {
+    try {
+      await this.bot.answerCallbackQuery(query.id, { text: 'Settings' });
+      
+      const settingsMessage = `⚙️ *Bot Settings*\n\n` +
+        `*Current Settings:*\n` +
+        `🔔 Notifications: Enabled\n` +
+        `📊 Analytics: Enabled\n` +
+        `🌐 Language: English\n\n` +
+        `*Available Options:*\n` +
+        `Use /settings command to configure:\n` +
+        `• Notification preferences\n` +
+        `• Language settings\n` +
+        `• Privacy options\n\n` +
+        `*Note:* Settings are saved per user.`;
+      
+      await this.bot.sendMessage(query.message.chat.id, settingsMessage, {
+        parse_mode: 'Markdown'
+      });
+    } catch (error) {
+      this.logger.error('Error showing settings:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error showing settings' });
+    }
+  }
+
+  async handleShowProfileCallback(query) {
+    try {
+      await this.bot.answerCallbackQuery(query.id, { text: 'Profile information' });
+      
+      const userId = query.from.id;
+      const user = await this.dbManager.getUser(userId);
+      
+      if (user) {
+        const profileMessage = `👤 *Your Profile*\n\n` +
+          `*User ID:* ${user.telegram_id}\n` +
+          `*Username:* ${user.username || 'Not set'}\n` +
+          `*Name:* ${user.first_name || ''} ${user.last_name || ''}\n` +
+          `*Member since:* ${new Date(user.created_at).toLocaleDateString()}\n\n` +
+          `*Statistics:*\n` +
+          `📋 Licenses: 0\n` +
+          `✅ Validations: 0\n\n` +
+          `Use /profile to update your information.`;
+        
+        await this.bot.sendMessage(query.message.chat.id, profileMessage, {
+          parse_mode: 'Markdown'
+        });
+      } else {
+        await this.bot.sendMessage(query.message.chat.id, '❌ Profile not found. Please use /start to register.');
+      }
+    } catch (error) {
+      this.logger.error('Error showing profile:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error showing profile' });
+    }
+  }
+
+  async handleShowAnalyticsCallback(query) {
+    try {
+      await this.bot.answerCallbackQuery(query.id, { text: 'Loading analytics...' });
+      
+      const stats = await this.dbManager.getBotStats();
+      
+      const analyticsMessage = `📊 *Analytics & Statistics*\n\n` +
+        `*Overall Statistics:*\n` +
+        `👥 Total Users: ${stats.totalUsers}\n` +
+        `📋 Total Licenses: ${stats.totalLicenses}\n` +
+        `⚡ Total Commands: ${stats.totalCommands}\n\n` +
+        `*Your Statistics:*\n` +
+        `📋 Your Licenses: 0\n` +
+        `✅ Validations: 0\n\n` +
+        `Use /analytics for detailed analytics.`;
+      
+      await this.bot.sendMessage(query.message.chat.id, analyticsMessage, {
+        parse_mode: 'Markdown'
+      });
+    } catch (error) {
+      this.logger.error('Error showing analytics:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error showing analytics' });
     }
   }
 
