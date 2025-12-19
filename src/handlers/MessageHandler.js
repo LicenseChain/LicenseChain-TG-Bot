@@ -299,7 +299,23 @@ class MessageHandler {
         'en': this.translator.t('settings.english', lang),
         'es': this.translator.t('settings.spanish', lang),
         'fr': this.translator.t('settings.french', lang),
-        'de': this.translator.t('settings.german', lang)
+        'de': this.translator.t('settings.german', lang),
+        'zh': this.translator.t('settings.chinese', lang),
+        'ja': this.translator.t('settings.japanese', lang),
+        'ru': this.translator.t('settings.russian', lang),
+        'et': this.translator.t('settings.estonian', lang),
+        'pt': this.translator.t('settings.portuguese', lang),
+        'it': this.translator.t('settings.italian', lang),
+        'ko': this.translator.t('settings.korean', lang),
+        'ca': this.translator.t('settings.catalan', lang),
+        'eu': this.translator.t('settings.basque', lang),
+        'gl': this.translator.t('settings.galician', lang),
+        'ar': this.translator.t('settings.arabic', lang),
+        'nl': this.translator.t('settings.dutch', lang),
+        'id': this.translator.t('settings.indonesian', lang),
+        'hi': this.translator.t('settings.hindi', lang),
+        'bn': this.translator.t('settings.bengali', lang),
+        'vi': this.translator.t('settings.vietnamese', lang)
       };
       const languageName = languageMap[settings.language] || settings.language || this.translator.t('settings.english', lang);
 
