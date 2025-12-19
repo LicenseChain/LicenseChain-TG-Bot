@@ -45,9 +45,8 @@ module.exports = {
       const days = timeframeMap[timeframe.toLowerCase()];
       const startDate = days ? new Date(now.getTime() - days * 24 * 60 * 60 * 1000) : null;
 
-      // Get validation logs from database (if available)
-      // For now, we'll use bot stats
-      const totalValidations = stats.totalCommands || 0;
+      // Get actual validation count from validations table (not all commands)
+      const totalValidations = await dbManager.getValidationCount(null, startDate);
       const averageDaily = days ? Math.round(totalValidations / days) : totalValidations;
 
       // Try to get API analytics if available

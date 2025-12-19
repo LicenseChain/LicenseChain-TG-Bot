@@ -205,12 +205,17 @@ class DatabaseManager {
     });
   }
 
-  async getValidationCount(userId = null) {
+  async getValidationCount(userId = null, startDate = null) {
     return new Promise((resolve, reject) => {
-      const query = userId 
+      let query = userId 
         ? 'SELECT COUNT(*) as count FROM validations WHERE user_id = ?'
         : 'SELECT COUNT(*) as count FROM validations';
       const params = userId ? [userId] : [];
+      
+      if (startDate) {
+        query += userId ? ' AND created_at >= ?' : ' WHERE created_at >= ?';
+        params.push(startDate.toISOString());
+      }
       
       this.db.get(query, params, (err, row) => {
         if (err) {
