@@ -782,31 +782,35 @@ class MessageHandler {
   async handleSetLanguageCallback(query, language) {
     try {
       const userId = query.from.id;
-      const languageMap = {
-        'en': 'English',
-        'es': 'Spanish',
-        'fr': 'French',
-        'de': 'German'
-      };
+      const oldLang = await this.translator.getUserLanguage(userId);
       
       await this.dbManager.updateUserSettings(userId, { language });
       
+      // Get new language for confirmation message
+      const languageMap = {
+        'en': this.translator.t('settings.english', language),
+        'es': this.translator.t('settings.spanish', language),
+        'fr': this.translator.t('settings.french', language),
+        'de': this.translator.t('settings.german', language)
+      };
+      
       await this.bot.answerCallbackQuery(query.id, { 
-        text: `Language set to ${languageMap[language] || language}` 
+        text: this.translator.t('settings.languageUpdated', language, { language: languageMap[language] || language })
       });
       
-      // Refresh settings display
+      // Refresh settings display with new language
       const settingsCommand = require('../commands/settings');
       const mockMsg = {
         chat: { id: query.message.chat.id },
         from: query.from,
         text: '/settings'
       };
-      await settingsCommand.execute(mockMsg, this.bot, this.licenseClient, this.dbManager);
+      await settingsCommand.execute(mockMsg, this.bot, this.licenseClient, this.dbManager, this.translator);
       
     } catch (error) {
       this.logger.error('Error handling set language callback:', error);
-      await this.bot.answerCallbackQuery(query.id, { text: 'Error setting language' });
+      const lang = await this.translator.getUserLanguage(query.from.id);
+      await this.bot.answerCallbackQuery(query.id, { text: this.translator.t('settings.error', lang) });
     }
   }
 
