@@ -736,7 +736,9 @@ class MessageHandler {
     try {
       const [setting, value] = params;
       const userId = query.from.id;
+      const lang = await this.translator.getUserLanguage(userId);
       
+      // Update settings in database
       const settings = {};
       if (setting === 'notifications') {
         settings.notifications_enabled = value === '1';
@@ -746,52 +748,166 @@ class MessageHandler {
       
       await this.dbManager.updateUserSettings(userId, settings);
       
+      // Get updated settings to refresh display
+      const updatedSettings = await this.dbManager.getUserSettings(userId);
+      
+      // Prepare confirmation message
+      const settingName = setting === 'notifications' 
+        ? this.translator.t('settings.notifications', lang, { status: '' }).replace(': ', '')
+        : this.translator.t('settings.analytics', lang, { status: '' }).replace(': ', '');
+      const statusText = value === '1' 
+        ? this.translator.t('settings.enabled', lang) 
+        : this.translator.t('settings.disabled', lang);
+      
       await this.bot.answerCallbackQuery(query.id, { 
-        text: `${setting === 'notifications' ? 'Notifications' : 'Analytics'} ${value === '1' ? 'enabled' : 'disabled'}` 
+        text: `${settingName} ${statusText}`
       });
       
-      // Refresh settings display
-      const settingsCommand = require('../commands/settings');
-      const mockMsg = {
-        chat: { id: query.message.chat.id },
-        from: query.from,
-        text: '/settings'
+      // Update the existing message with new settings
+      const notificationsStatus = updatedSettings.notifications_enabled 
+        ? this.translator.t('settings.enabled', lang) 
+        : this.translator.t('settings.disabled', lang);
+      const analyticsStatus = updatedSettings.analytics_enabled 
+        ? this.translator.t('settings.enabled', lang) 
+        : this.translator.t('settings.disabled', lang);
+      
+      const languageMap = {
+        'en': this.translator.t('settings.english', lang),
+        'es': this.translator.t('settings.spanish', lang),
+        'fr': this.translator.t('settings.french', lang),
+        'de': this.translator.t('settings.german', lang),
+        'zh': this.translator.t('settings.chinese', lang),
+        'ja': this.translator.t('settings.japanese', lang),
+        'ru': this.translator.t('settings.russian', lang),
+        'et': this.translator.t('settings.estonian', lang),
+        'pt': this.translator.t('settings.portuguese', lang),
+        'it': this.translator.t('settings.italian', lang),
+        'ko': this.translator.t('settings.korean', lang),
+        'ca': this.translator.t('settings.catalan', lang),
+        'eu': this.translator.t('settings.basque', lang),
+        'gl': this.translator.t('settings.galician', lang),
+        'ar': this.translator.t('settings.arabic', lang),
+        'nl': this.translator.t('settings.dutch', lang),
+        'id': this.translator.t('settings.indonesian', lang),
+        'hi': this.translator.t('settings.hindi', lang),
+        'bn': this.translator.t('settings.bengali', lang),
+        'vi': this.translator.t('settings.vietnamese', lang)
       };
-      await settingsCommand.execute(mockMsg, this.bot, this.licenseClient, this.dbManager);
-      
-    } catch (error) {
-      this.logger.error('Error handling toggle setting callback:', error);
-      await this.bot.answerCallbackQuery(query.id, { text: 'Error updating setting' });
-    }
-  }
+      const languageName = languageMap[updatedSettings.language] || updatedSettings.language || this.translator.t('settings.english', lang);
 
-  async handleChangeLanguageCallback(query) {
-    try {
-      await this.bot.answerCallbackQuery(query.id, { text: 'Language selection' });
-      
+      const settingsMessage = this.translator.t('settings.title', lang) + '\n\n' +
+        this.translator.t('settings.currentSettings', lang) + '\n' +
+        this.translator.t('settings.notifications', lang, { status: notificationsStatus }) + '\n' +
+        this.translator.t('settings.analytics', lang, { status: analyticsStatus }) + '\n' +
+        this.translator.t('settings.language', lang, { name: languageName }) + '\n\n' +
+        this.translator.t('settings.tapButtons', lang);
+
       const keyboard = {
         reply_markup: {
           inline_keyboard: [
             [
-              { text: '🇺🇸 English', callback_data: 'set_language:en' },
-              { text: '🇪🇸 Spanish', callback_data: 'set_language:es' }
+              { 
+                text: updatedSettings.notifications_enabled 
+                  ? this.translator.t('settings.notificationsOn', lang) 
+                  : this.translator.t('settings.notificationsOff', lang),
+                callback_data: `toggle_setting:notifications:${updatedSettings.notifications_enabled ? '0' : '1'}`
+              }
             ],
             [
-              { text: '🇫🇷 French', callback_data: 'set_language:fr' },
-              { text: '🇩🇪 German', callback_data: 'set_language:de' }
+              { 
+                text: updatedSettings.analytics_enabled 
+                  ? this.translator.t('settings.analyticsOn', lang) 
+                  : this.translator.t('settings.analyticsOff', lang),
+                callback_data: `toggle_setting:analytics:${updatedSettings.analytics_enabled ? '0' : '1'}`
+              }
+            ],
+            [
+              { text: this.translator.t('settings.languageButton', lang), callback_data: 'change_language' }
+            ],
+            [
+              { text: this.translator.t('settings.refresh', lang), callback_data: 'show_settings' }
             ]
           ]
         }
       };
       
+      // Edit the existing message instead of creating a new one
+      await this.bot.editMessageText(settingsMessage, {
+        chat_id: query.message.chat.id,
+        message_id: query.message.message_id,
+        parse_mode: 'Markdown',
+        ...keyboard
+      });
+      
+    } catch (error) {
+      this.logger.error('Error handling toggle setting callback:', error);
+      const lang = await this.translator.getUserLanguage(query.from.id);
+      await this.bot.answerCallbackQuery(query.id, { text: this.translator.t('settings.error', lang) });
+    }
+  }
+
+  async handleChangeLanguageCallback(query) {
+    try {
+      const userId = query.from.id;
+      const lang = await this.translator.getUserLanguage(userId);
+      
+      await this.bot.answerCallbackQuery(query.id, { text: this.translator.t('settings.selectLanguage', lang) });
+      
+      // Create keyboard with all 20 languages in a grid (2 columns)
+      const languages = [
+        { code: 'en', key: 'settings.english' },
+        { code: 'es', key: 'settings.spanish' },
+        { code: 'fr', key: 'settings.french' },
+        { code: 'de', key: 'settings.german' },
+        { code: 'zh', key: 'settings.chinese' },
+        { code: 'ja', key: 'settings.japanese' },
+        { code: 'ru', key: 'settings.russian' },
+        { code: 'et', key: 'settings.estonian' },
+        { code: 'pt', key: 'settings.portuguese' },
+        { code: 'it', key: 'settings.italian' },
+        { code: 'ko', key: 'settings.korean' },
+        { code: 'ca', key: 'settings.catalan' },
+        { code: 'eu', key: 'settings.basque' },
+        { code: 'gl', key: 'settings.galician' },
+        { code: 'ar', key: 'settings.arabic' },
+        { code: 'nl', key: 'settings.dutch' },
+        { code: 'id', key: 'settings.indonesian' },
+        { code: 'hi', key: 'settings.hindi' },
+        { code: 'bn', key: 'settings.bengali' },
+        { code: 'vi', key: 'settings.vietnamese' }
+      ];
+      
+      const keyboard = {
+        reply_markup: {
+          inline_keyboard: []
+        }
+      };
+      
+      // Create rows with 2 languages each
+      for (let i = 0; i < languages.length; i += 2) {
+        const row = [];
+        row.push({
+          text: this.translator.t(languages[i].key, lang),
+          callback_data: `set_language:${languages[i].code}`
+        });
+        if (i + 1 < languages.length) {
+          row.push({
+            text: this.translator.t(languages[i + 1].key, lang),
+            callback_data: `set_language:${languages[i + 1].code}`
+          });
+        }
+        keyboard.reply_markup.inline_keyboard.push(row);
+      }
+      
       await this.bot.sendMessage(query.message.chat.id,
-        `🌐 *Select Language*\n\n` +
-        `Choose your preferred language:`,
+        this.translator.t('settings.selectLanguage', lang) + '\n\n' +
+        this.translator.t('settings.chooseLanguage', lang),
         { parse_mode: 'Markdown', ...keyboard }
       );
     } catch (error) {
       this.logger.error('Error handling change language callback:', error);
-      await this.bot.answerCallbackQuery(query.id, { text: 'Error' });
+      const lang = await this.translator.getUserLanguage(query.from.id);
+      await this.bot.answerCallbackQuery(query.id, { text: this.translator.t('common.error', lang) });
     }
   }
 

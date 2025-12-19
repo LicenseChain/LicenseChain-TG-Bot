@@ -6,15 +6,15 @@ module.exports = {
   name: 'validate',
   description: 'Validate a license key',
   
-  async execute(msg, bot, licenseClient, dbManager) {
+  async execute(msg, bot, licenseClient, dbManager, translator) {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
     const args = msg.text.split(' ').slice(1);
+    const lang = await translator.getUserLanguage(userId);
 
     if (args.length === 0) {
       await bot.sendMessage(chatId, 
-        '❌ *Usage:* `/validate <license_key>`\n\n' +
-        'Example: `/validate LC-ABC123-DEF456-GHI789`',
+        translator.t('validate.usage', lang),
         { parse_mode: 'Markdown' }
       );
       return;
@@ -24,32 +24,35 @@ module.exports = {
 
     try {
       // Show loading message
-      const loadingMsg = await bot.sendMessage(chatId, '🔄 Validating license...');
+      const loadingMsg = await bot.sendMessage(chatId, translator.t('validate.validating', lang));
 
       // Validate license
       const result = await licenseClient.validateLicense(licenseKey);
 
       let message;
       if (result.valid) {
-        message = `✅ *License Valid*\n\n` +
-          `Key: \`${licenseKey}\`\n` +
-          `Status: Active\n` +
-          `Message: ${result.message || 'License is valid and active'}\n`;
+        message = translator.t('validate.valid', lang, {
+          key: licenseKey,
+          message: result.message || translator.t('validate.valid', lang, { key: licenseKey, message: 'License is valid and active' }).split('Message: ')[1] || 'License is valid and active'
+        });
 
         if (result.expiresAt) {
           const expiresDate = new Date(result.expiresAt).toLocaleDateString();
-          message += `Expires: ${expiresDate}\n`;
+          message += '\n' + translator.t('validate.expires', lang, { date: expiresDate });
         }
 
         if (result.features && result.features.length > 0) {
-          message += `Features: ${result.features.join(', ')}\n`;
+          message += '\n' + translator.t('validate.features', lang, { features: result.features.join(', ') });
         }
 
         if (result.usage) {
-          message += `\n*Usage Statistics:*\n` +
-            `Total Validations: ${result.usage.totalValidations || 0}\n` +
-            `Last Validated: ${result.usage.lastValidated ? 
-              new Date(result.usage.lastValidated).toLocaleDateString() : 'Never'}\n`;
+          message += '\n\n' + translator.t('validate.usageStats', lang) + '\n' +
+            translator.t('validate.totalValidations', lang, { count: result.usage.totalValidations || 0 }) + '\n' +
+            translator.t('validate.lastValidated', lang, { 
+              date: result.usage.lastValidated ? 
+                new Date(result.usage.lastValidated).toLocaleDateString() : 
+                translator.t('validate.never', lang)
+            });
         }
 
         // Add action buttons
@@ -57,11 +60,11 @@ module.exports = {
           reply_markup: {
             inline_keyboard: [
               [
-                { text: '📋 Get Details', callback_data: `license_info_${licenseKey}` },
-                { text: '📊 Analytics', callback_data: `license_analytics_${licenseKey}` }
+                { text: translator.t('validate.getDetails', lang), callback_data: `license_info_${licenseKey}` },
+                { text: translator.t('validate.analytics', lang), callback_data: `license_analytics_${licenseKey}` }
               ],
               [
-                { text: '🔄 Validate Again', callback_data: 'validate_license' }
+                { text: translator.t('validate.validateAgain', lang), callback_data: 'validate_license' }
               ]
             ]
           }
@@ -75,18 +78,17 @@ module.exports = {
         });
 
       } else {
-        message = `❌ *License Invalid*\n\n` +
-          `Key: \`${licenseKey}\`\n` +
-          `Status: Invalid\n` +
-          `Message: ${result.message || 'License key is invalid or expired'}\n\n` +
-          `Please check your license key and try again.`;
+        message = translator.t('validate.invalid', lang, {
+          key: licenseKey,
+          message: result.message || 'License key is invalid or expired'
+        });
 
         const keyboard = {
           reply_markup: {
             inline_keyboard: [
               [
-                { text: '🔄 Try Another Key', callback_data: 'validate_license' },
-                { text: '❓ Get Help', callback_data: 'show_help' }
+                { text: translator.t('validate.tryAnotherKey', lang), callback_data: 'validate_license' },
+                { text: translator.t('validate.getHelp', lang), callback_data: 'show_help' }
               ]
             ]
           }
@@ -106,17 +108,14 @@ module.exports = {
     } catch (error) {
       console.error('Error validating license:', error);
       
-      const errorMessage = `❌ *Validation Failed*\n\n` +
-        `An error occurred while validating your license:\n` +
-        `\`${error.message}\`\n\n` +
-        `Please try again later or contact support if the problem persists.`;
+      const errorMessage = translator.t('validate.failed', lang, { error: error.message });
 
       const keyboard = {
         reply_markup: {
           inline_keyboard: [
             [
-              { text: '🔄 Try Again', callback_data: 'validate_license' },
-              { text: '❓ Get Help', callback_data: 'show_help' }
+              { text: translator.t('validate.tryAgain', lang), callback_data: 'validate_license' },
+              { text: translator.t('validate.getHelp', lang), callback_data: 'show_help' }
             ]
           ]
         }

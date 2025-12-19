@@ -6,9 +6,10 @@ module.exports = {
   name: 'analytics',
   description: 'View analytics and statistics',
   
-  async execute(msg, bot, licenseClient, dbManager) {
+  async execute(msg, bot, licenseClient, dbManager, translator) {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
+    const lang = await translator.getUserLanguage(userId);
 
     try {
       // Get bot stats from local database
@@ -71,29 +72,29 @@ module.exports = {
         return new Date(l.createdAt) >= sevenDaysAgo;
       }).length;
       
-      const analyticsMessage = `📊 *Detailed Analytics*\n\n` +
-        `*Overall Statistics:*\n` +
-        `👥 Total Users: ${botStats.totalUsers}\n` +
-        `📋 Total Licenses: ${totalLicenses}\n` +
-        `✅ Active: ${activeLicenses}\n` +
-        `❌ Expired: ${expiredLicenses}\n` +
-        `🚫 Revoked: ${revokedLicenses}\n` +
-        `${suspendedLicenses > 0 ? `⚠️ Suspended: ${suspendedLicenses}\n` : ''}` +
-        `⚡ Total Commands: ${botStats.totalCommands}\n` +
-        `✅ Total Validations: ${totalValidations}\n\n` +
-        `*Your Statistics:*\n` +
-        `📋 Your Licenses: ${totalLicenses}\n` +
-        `✅ Your Validations: ${userValidations}\n\n` +
-        `*License Distribution:*\n` +
+      const analyticsMessage = translator.t('analytics.title', lang) + '\n\n' +
+        translator.t('analytics.overallStats', lang) + '\n' +
+        translator.t('analytics.totalUsers', lang, { count: botStats.totalUsers }) + '\n' +
+        translator.t('analytics.totalLicenses', lang, { count: totalLicenses }) + '\n' +
+        translator.t('analytics.active', lang, { count: activeLicenses }) + '\n' +
+        translator.t('analytics.expired', lang, { count: expiredLicenses }) + '\n' +
+        translator.t('analytics.revoked', lang, { count: revokedLicenses }) + '\n' +
+        (suspendedLicenses > 0 ? translator.t('analytics.suspended', lang, { count: suspendedLicenses }) + '\n' : '') +
+        translator.t('analytics.totalCommands', lang, { count: botStats.totalCommands }) + '\n' +
+        translator.t('analytics.totalValidations', lang, { count: totalValidations }) + '\n\n' +
+        translator.t('analytics.yourStats', lang) + '\n' +
+        translator.t('analytics.yourLicenses', lang, { count: totalLicenses }) + '\n' +
+        translator.t('analytics.yourValidations', lang, { count: userValidations }) + '\n\n' +
+        translator.t('analytics.licenseDistribution', lang) + '\n' +
         (Object.keys(planStats).length > 0 
           ? Object.entries(planStats).map(([plan, count]) => `  ${plan}: ${count}`).join('\n')
-          : '  No plan data available') +
-        `\n\n` +
-        `*Recent Activity (7 days):*\n` +
-        `📋 New Licenses: ${recentLicenses}\n` +
-        `📈 Growth Rate: ${totalLicenses > 0 ? ((recentLicenses / totalLicenses) * 100).toFixed(1) : 0}%\n\n` +
-        `Use /usage [timeframe] for usage analytics.\n` +
-        `Use /performance for performance metrics.`;
+          : translator.t('analytics.noPlanData', lang)) +
+        '\n\n' +
+        translator.t('analytics.recentActivity', lang) + '\n' +
+        translator.t('analytics.newLicenses', lang, { count: recentLicenses }) + '\n' +
+        translator.t('analytics.growthRate', lang, { rate: totalLicenses > 0 ? ((recentLicenses / totalLicenses) * 100).toFixed(1) : 0 }) + '\n\n' +
+        translator.t('analytics.usageCommand', lang) + '\n' +
+        translator.t('analytics.performanceCommand', lang);
 
       await bot.sendMessage(chatId, analyticsMessage, {
         parse_mode: 'Markdown'
