@@ -150,6 +150,21 @@ class MessageHandler {
         case 'show_analytics':
           await this.handleShowAnalyticsCallback(query);
           break;
+        case 'toggle_setting':
+          await this.handleToggleSettingCallback(query, params);
+          break;
+        case 'change_language':
+          await this.handleChangeLanguageCallback(query);
+          break;
+        case 'show_settings':
+          await this.handleShowSettingsCallback(query);
+          break;
+        case 'edit_profile':
+          await this.handleEditProfileCallback(query, params);
+          break;
+        case 'show_profile':
+          await this.handleShowProfileCallback(query);
+          break;
         case 'create_ticket':
           await this.handleCreateTicketCallback(query);
           break;
@@ -173,6 +188,9 @@ class MessageHandler {
           } else if (data.startsWith('extend_license_')) {
             const licenseKey = data.replace('extend_license_', '');
             await this.handleExtendLicenseCallback(query, licenseKey);
+          } else if (data.startsWith('set_language:')) {
+            const language = data.replace('set_language:', '');
+            await this.handleSetLanguageCallback(query, language);
           } else {
             await this.bot.answerCallbackQuery(query.id, { text: 'Unknown action' });
           }
@@ -607,6 +625,133 @@ class MessageHandler {
       );
     } catch (error) {
       this.logger.error('Error handling create callback:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error' });
+    }
+  }
+
+  async handleToggleSettingCallback(query, params) {
+    try {
+      const [setting, value] = params;
+      const userId = query.from.id;
+      
+      const settings = {};
+      if (setting === 'notifications') {
+        settings.notifications_enabled = value === '1';
+      } else if (setting === 'analytics') {
+        settings.analytics_enabled = value === '1';
+      }
+      
+      await this.dbManager.updateUserSettings(userId, settings);
+      
+      await this.bot.answerCallbackQuery(query.id, { 
+        text: `${setting === 'notifications' ? 'Notifications' : 'Analytics'} ${value === '1' ? 'enabled' : 'disabled'}` 
+      });
+      
+      // Refresh settings display
+      const settingsCommand = require('../commands/settings');
+      const mockMsg = {
+        chat: { id: query.message.chat.id },
+        from: query.from,
+        text: '/settings'
+      };
+      await settingsCommand.execute(mockMsg, this.bot, this.licenseClient, this.dbManager);
+      
+    } catch (error) {
+      this.logger.error('Error handling toggle setting callback:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error updating setting' });
+    }
+  }
+
+  async handleChangeLanguageCallback(query) {
+    try {
+      await this.bot.answerCallbackQuery(query.id, { text: 'Language selection' });
+      
+      const keyboard = {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '🇺🇸 English', callback_data: 'set_language:en' },
+              { text: '🇪🇸 Spanish', callback_data: 'set_language:es' }
+            ],
+            [
+              { text: '🇫🇷 French', callback_data: 'set_language:fr' },
+              { text: '🇩🇪 German', callback_data: 'set_language:de' }
+            ]
+          ]
+        }
+      };
+      
+      await this.bot.sendMessage(query.message.chat.id,
+        `🌐 *Select Language*\n\n` +
+        `Choose your preferred language:`,
+        { parse_mode: 'Markdown', ...keyboard }
+      );
+    } catch (error) {
+      this.logger.error('Error handling change language callback:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error' });
+    }
+  }
+
+  async handleSetLanguageCallback(query, language) {
+    try {
+      const userId = query.from.id;
+      const languageMap = {
+        'en': 'English',
+        'es': 'Spanish',
+        'fr': 'French',
+        'de': 'German'
+      };
+      
+      await this.dbManager.updateUserSettings(userId, { language });
+      
+      await this.bot.answerCallbackQuery(query.id, { 
+        text: `Language set to ${languageMap[language] || language}` 
+      });
+      
+      // Refresh settings display
+      const settingsCommand = require('../commands/settings');
+      const mockMsg = {
+        chat: { id: query.message.chat.id },
+        from: query.from,
+        text: '/settings'
+      };
+      await settingsCommand.execute(mockMsg, this.bot, this.licenseClient, this.dbManager);
+      
+    } catch (error) {
+      this.logger.error('Error handling set language callback:', error);
+      await this.bot.answerCallbackQuery(query.id, { text: 'Error setting language' });
+    }
+  }
+
+  async handleEditProfileCallback(query, params) {
+    try {
+      const [field] = params;
+      const userId = query.from.id;
+      
+      if (field === 'username') {
+        await this.bot.answerCallbackQuery(query.id, { text: 'Edit username' });
+        await this.bot.sendMessage(query.message.chat.id,
+          `✏️ *Edit Username*\n\n` +
+          `To update your username, send me a message with:\n` +
+          `\`/updateprofile username <new_username>\`\n\n` +
+          `Example: \`/updateprofile username newusername\`\n\n` +
+          `Or simply update your Telegram username and use /profile to refresh.`,
+          { parse_mode: 'Markdown' }
+        );
+      } else if (field === 'name') {
+        await this.bot.answerCallbackQuery(query.id, { text: 'Edit name' });
+        await this.bot.sendMessage(query.message.chat.id,
+          `✏️ *Edit Name*\n\n` +
+          `To update your name, send me a message with:\n` +
+          `\`/updateprofile name <first_name> [last_name]\`\n\n` +
+          `Example: \`/updateprofile name John\`\n` +
+          `Example: \`/updateprofile name John Doe\`\n\n` +
+          `Or simply update your Telegram name and use /profile to refresh.`,
+          { parse_mode: 'Markdown' }
+        );
+      }
+    } catch (error) {
+      this.logger.error('Error handling edit profile callback:', error);
       await this.bot.answerCallbackQuery(query.id, { text: 'Error' });
     }
   }

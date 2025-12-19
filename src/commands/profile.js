@@ -54,6 +54,9 @@ module.exports = {
       const totalLicenses = apiLicenses.length;
       const activeLicenses = apiLicenses.filter(l => l.status?.toLowerCase() === 'active').length;
       
+      // Get actual validation count (not all commands)
+      const validationCount = await dbManager.getValidationCount(userId);
+      
       const profileMessage = `👤 *Your Profile*\n\n` +
         `*User ID:* ${user.telegram_id}\n` +
         `*Username:* ${user.username || 'Not set'}\n` +
@@ -62,11 +65,26 @@ module.exports = {
         `*Statistics:*\n` +
         `📋 Licenses: ${totalLicenses}\n` +
         `✅ Active Licenses: ${activeLicenses}\n` +
-        `✅ Validations: 0\n\n` +
-        `Use /profile to update your information.`;
+        `✅ Validations: ${validationCount}\n\n` +
+        `*Tap buttons below to update your information:*`;
+
+      const keyboard = {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '✏️ Edit Username', callback_data: 'edit_profile:username' },
+              { text: '✏️ Edit Name', callback_data: 'edit_profile:name' }
+            ],
+            [
+              { text: '🔄 Refresh', callback_data: 'show_profile' }
+            ]
+          ]
+        }
+      };
 
       await bot.sendMessage(chatId, profileMessage, {
-        parse_mode: 'Markdown'
+        parse_mode: 'Markdown',
+        ...keyboard
       });
     } catch (error) {
       console.error('Error in profile command:', error);

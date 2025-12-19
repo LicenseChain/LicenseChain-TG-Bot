@@ -93,6 +93,23 @@ class DatabaseManager {
           status TEXT DEFAULT 'online',
           updated_by INTEGER,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`,
+        `CREATE TABLE IF NOT EXISTS user_settings (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER UNIQUE NOT NULL,
+          notifications_enabled INTEGER DEFAULT 1,
+          analytics_enabled INTEGER DEFAULT 1,
+          language TEXT DEFAULT 'en',
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS validations (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          license_key TEXT NOT NULL,
+          is_valid INTEGER DEFAULT 1,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id)
         )`
       ];
 
@@ -173,15 +190,159 @@ class DatabaseManager {
 
   async logValidation(userId, licenseKey, isValid) {
     return new Promise((resolve, reject) => {
-      // Log validation as a command
+      // Log validation in validations table (not commands)
       this.db.run(
-        'INSERT INTO commands (user_id, command) VALUES (?, ?)',
-        [userId, `validate:${licenseKey}:${isValid ? 'valid' : 'invalid'}`],
+        'INSERT INTO validations (user_id, license_key, is_valid) VALUES (?, ?, ?)',
+        [userId, licenseKey, isValid ? 1 : 0],
         (err) => {
           if (err) {
             reject(err);
           } else {
             resolve();
+          }
+        }
+      );
+    });
+  }
+
+  async getValidationCount(userId = null) {
+    return new Promise((resolve, reject) => {
+      const query = userId 
+        ? 'SELECT COUNT(*) as count FROM validations WHERE user_id = ?'
+        : 'SELECT COUNT(*) as count FROM validations';
+      const params = userId ? [userId] : [];
+      
+      this.db.get(query, params, (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row ? row.count : 0);
+        }
+      });
+    });
+  }
+
+  async getUserSettings(userId) {
+    return new Promise((resolve, reject) => {
+      this.db.get(
+        'SELECT * FROM user_settings WHERE user_id = ?',
+        [userId],
+        (err, row) => {
+          if (err) {
+            reject(err);
+          } else {
+            // Return default settings if none found
+            resolve(row || {
+              user_id: userId,
+              notifications_enabled: 1,
+              analytics_enabled: 1,
+              language: 'en'
+            });
+          }
+        }
+      );
+    });
+  }
+
+  async updateUserSettings(userId, settings) {
+    return new Promise((resolve, reject) => {
+      // Check if settings exist
+      this.db.get(
+        'SELECT id FROM user_settings WHERE user_id = ?',
+        [userId],
+        (err, row) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          if (row) {
+            // Update existing
+            const updates = [];
+            const values = [];
+            if (settings.notifications_enabled !== undefined) {
+              updates.push('notifications_enabled = ?');
+              values.push(settings.notifications_enabled ? 1 : 0);
+            }
+            if (settings.analytics_enabled !== undefined) {
+              updates.push('analytics_enabled = ?');
+              values.push(settings.analytics_enabled ? 1 : 0);
+            }
+            if (settings.language !== undefined) {
+              updates.push('language = ?');
+              values.push(settings.language);
+            }
+            values.push(userId);
+
+            this.db.run(
+              `UPDATE user_settings SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`,
+              values,
+              function(updateErr) {
+                if (updateErr) {
+                  reject(updateErr);
+                } else {
+                  resolve({ changes: this.changes });
+                }
+              }
+            );
+          } else {
+            // Insert new
+            this.db.run(
+              `INSERT INTO user_settings (user_id, notifications_enabled, analytics_enabled, language)
+               VALUES (?, ?, ?, ?)`,
+              [
+                userId,
+                settings.notifications_enabled !== undefined ? (settings.notifications_enabled ? 1 : 0) : 1,
+                settings.analytics_enabled !== undefined ? (settings.analytics_enabled ? 1 : 0) : 1,
+                settings.language || 'en'
+              ],
+              function(insertErr) {
+                if (insertErr) {
+                  reject(insertErr);
+                } else {
+                  resolve({ id: this.lastID });
+                }
+              }
+            );
+          }
+        }
+      );
+    });
+  }
+
+  async updateUser(userId, userData) {
+    return new Promise((resolve, reject) => {
+      const updates = [];
+      const values = [];
+      
+      if (userData.username !== undefined) {
+        updates.push('username = ?');
+        values.push(userData.username);
+      }
+      if (userData.first_name !== undefined) {
+        updates.push('first_name = ?');
+        values.push(userData.first_name);
+      }
+      if (userData.last_name !== undefined) {
+        updates.push('last_name = ?');
+        values.push(userData.last_name);
+      }
+      
+      if (updates.length === 0) {
+        resolve({ changes: 0 });
+        return;
+      }
+      
+      values.push(userId);
+      
+      this.db.run(
+        `UPDATE users SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE telegram_id = ?`,
+        values,
+        function(err) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve({ changes: this.changes });
           }
         }
       );
