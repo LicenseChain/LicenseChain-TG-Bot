@@ -418,6 +418,10 @@ class MessageHandler {
       const totalLicenses = apiLicenses.length > 0 ? apiLicenses.length : botStats.totalLicenses;
       const activeLicenses = apiLicenses.filter(l => l.status?.toLowerCase() === 'active').length;
       
+      // Get actual validation count (not all commands)
+      const userId = query.from.id;
+      const userValidations = await this.dbManager.getValidationCount(userId);
+      
       const analyticsMessage = `📊 *Analytics & Statistics*\n\n` +
         `*Overall Statistics:*\n` +
         `👥 Total Users: ${botStats.totalUsers}\n` +
@@ -426,7 +430,7 @@ class MessageHandler {
         `⚡ Total Commands: ${botStats.totalCommands}\n\n` +
         `*Your Statistics:*\n` +
         `📋 Your Licenses: ${totalLicenses}\n` +
-        `✅ Validations: ${botStats.totalCommands}\n\n` +
+        `✅ Validations: ${userValidations}\n\n` +
         `Use /analytics for detailed analytics.`;
       
       await this.bot.sendMessage(query.message.chat.id, analyticsMessage, {
