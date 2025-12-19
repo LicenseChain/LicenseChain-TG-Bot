@@ -1,4 +1,4 @@
-# LicenseChain Telegram Bot
+﻿# LicenseChain Telegram Bot
 
 [![License](https://img.shields.io/badge/license-ELASTIC2.0-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-16+-green.svg)](https://nodejs.org/)
@@ -78,16 +78,16 @@ docker run -p 3005:3005 `
 #### Windows (CMD - Command Prompt)
 
 ```cmd
-REM Build the Docker image
+# Build the Docker image
 docker build -t licensechain-telegram-bot .
 
-REM Run the container (default port is 3005) - Single line
+# Run the container (default port is 3005) - Single line
 docker run -p 3005:3005 -e TELEGRAM_TOKEN=your_telegram_token -e LICENSE_CHAIN_API_KEY=your_api_key licensechain-telegram-bot
 
-REM Or use custom port via environment variable
+# Or use custom port via environment variable
 docker run -p 8080:8080 -e PORT=8080 -e TELEGRAM_TOKEN=your_telegram_token -e LICENSE_CHAIN_API_KEY=your_api_key licensechain-telegram-bot
 
-REM Alternative: Use caret (^) for line continuation in CMD
+# Alternative: Use caret (^) for line continuation in CMD
 docker run -p 3005:3005 ^
   -e TELEGRAM_TOKEN=your_telegram_token ^
   -e LICENSE_CHAIN_API_KEY=your_api_key ^
