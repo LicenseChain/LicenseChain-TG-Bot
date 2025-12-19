@@ -36,6 +36,8 @@ npm start
 
 ### Method 2: Docker
 
+#### Linux/macOS (Bash)
+
 ```bash
 # Build the Docker image
 docker build -t licensechain-telegram-bot .
@@ -51,6 +53,25 @@ docker run -p 8080:8080 \
   -e PORT=8080 \
   -e TELEGRAM_TOKEN=your_telegram_token \
   -e LICENSE_CHAIN_API_KEY=your_api_key \
+  licensechain-telegram-bot
+```
+
+#### Windows (PowerShell)
+
+```powershell
+# Build the Docker image
+docker build -t licensechain-telegram-bot .
+
+# Run the container (default port is 3005)
+docker run -p 3005:3005 -e TELEGRAM_TOKEN=your_telegram_token -e LICENSE_CHAIN_API_KEY=your_api_key licensechain-telegram-bot
+
+# Or use custom port via environment variable
+docker run -p 8080:8080 -e PORT=8080 -e TELEGRAM_TOKEN=your_telegram_token -e LICENSE_CHAIN_API_KEY=your_api_key licensechain-telegram-bot
+
+# Alternative: Use backticks for line continuation in PowerShell
+docker run -p 3005:3005 `
+  -e TELEGRAM_TOKEN=your_telegram_token `
+  -e LICENSE_CHAIN_API_KEY=your_api_key `
   licensechain-telegram-bot
 ```
 
