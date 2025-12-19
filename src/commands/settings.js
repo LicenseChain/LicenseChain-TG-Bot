@@ -26,7 +26,23 @@ module.exports = {
         'en': translator.t('settings.english', lang),
         'es': translator.t('settings.spanish', lang),
         'fr': translator.t('settings.french', lang),
-        'de': translator.t('settings.german', lang)
+        'de': translator.t('settings.german', lang),
+        'zh': translator.t('settings.chinese', lang),
+        'ja': translator.t('settings.japanese', lang),
+        'ru': translator.t('settings.russian', lang),
+        'et': translator.t('settings.estonian', lang),
+        'pt': translator.t('settings.portuguese', lang),
+        'it': translator.t('settings.italian', lang),
+        'ko': translator.t('settings.korean', lang),
+        'ca': translator.t('settings.catalan', lang),
+        'eu': translator.t('settings.basque', lang),
+        'gl': translator.t('settings.galician', lang),
+        'ar': translator.t('settings.arabic', lang),
+        'nl': translator.t('settings.dutch', lang),
+        'id': translator.t('settings.indonesian', lang),
+        'hi': translator.t('settings.hindi', lang),
+        'bn': translator.t('settings.bengali', lang),
+        'vi': translator.t('settings.vietnamese', lang)
       };
       const languageName = languageMap[settings.language] || settings.language || translator.t('settings.english', lang);
 

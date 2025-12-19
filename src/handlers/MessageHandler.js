@@ -791,7 +791,23 @@ class MessageHandler {
         'en': this.translator.t('settings.english', language),
         'es': this.translator.t('settings.spanish', language),
         'fr': this.translator.t('settings.french', language),
-        'de': this.translator.t('settings.german', language)
+        'de': this.translator.t('settings.german', language),
+        'zh': this.translator.t('settings.chinese', language),
+        'ja': this.translator.t('settings.japanese', language),
+        'ru': this.translator.t('settings.russian', language),
+        'et': this.translator.t('settings.estonian', language),
+        'pt': this.translator.t('settings.portuguese', language),
+        'it': this.translator.t('settings.italian', language),
+        'ko': this.translator.t('settings.korean', language),
+        'ca': this.translator.t('settings.catalan', language),
+        'eu': this.translator.t('settings.basque', language),
+        'gl': this.translator.t('settings.galician', language),
+        'ar': this.translator.t('settings.arabic', language),
+        'nl': this.translator.t('settings.dutch', language),
+        'id': this.translator.t('settings.indonesian', language),
+        'hi': this.translator.t('settings.hindi', language),
+        'bn': this.translator.t('settings.bengali', language),
+        'vi': this.translator.t('settings.vietnamese', language)
       };
       
       await this.bot.answerCallbackQuery(query.id, { 
@@ -818,32 +834,25 @@ class MessageHandler {
     try {
       const [field] = params;
       const userId = query.from.id;
+      const lang = await this.translator.getUserLanguage(userId);
       
       if (field === 'username') {
-        await this.bot.answerCallbackQuery(query.id, { text: 'Edit username' });
+        await this.bot.answerCallbackQuery(query.id, { text: this.translator.t('profile.editUsername', lang) });
         await this.bot.sendMessage(query.message.chat.id,
-          `✏️ *Edit Username*\n\n` +
-          `To update your username, send me a message with:\n` +
-          `\`/updateprofile username <new_username>\`\n\n` +
-          `Example: \`/updateprofile username newusername\`\n\n` +
-          `Or simply update your Telegram username and use /profile to refresh.`,
+          this.translator.t('profile.editUsernamePrompt', lang),
           { parse_mode: 'Markdown' }
         );
       } else if (field === 'name') {
-        await this.bot.answerCallbackQuery(query.id, { text: 'Edit name' });
+        await this.bot.answerCallbackQuery(query.id, { text: this.translator.t('profile.editName', lang) });
         await this.bot.sendMessage(query.message.chat.id,
-          `✏️ *Edit Name*\n\n` +
-          `To update your name, send me a message with:\n` +
-          `\`/updateprofile name <first_name> [last_name]\`\n\n` +
-          `Example: \`/updateprofile name John\`\n` +
-          `Example: \`/updateprofile name John Doe\`\n\n` +
-          `Or simply update your Telegram name and use /profile to refresh.`,
+          this.translator.t('profile.editNamePrompt', lang),
           { parse_mode: 'Markdown' }
         );
       }
     } catch (error) {
       this.logger.error('Error handling edit profile callback:', error);
-      await this.bot.answerCallbackQuery(query.id, { text: 'Error' });
+      const lang = await this.translator.getUserLanguage(query.from.id);
+      await this.bot.answerCallbackQuery(query.id, { text: this.translator.t('common.error', lang) });
     }
   }
 

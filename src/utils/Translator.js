@@ -13,7 +13,23 @@ class Translator {
       en: require('../locales/en.json'),
       es: require('../locales/es.json'),
       fr: require('../locales/fr.json'),
-      de: require('../locales/de.json')
+      de: require('../locales/de.json'),
+      zh: require('../locales/zh.json'),
+      ja: require('../locales/ja.json'),
+      ru: require('../locales/ru.json'),
+      et: require('../locales/et.json'),
+      pt: require('../locales/pt.json'),
+      it: require('../locales/it.json'),
+      ko: require('../locales/ko.json'),
+      ca: require('../locales/ca.json'),
+      eu: require('../locales/eu.json'),
+      gl: require('../locales/gl.json'),
+      ar: require('../locales/ar.json'),
+      nl: require('../locales/nl.json'),
+      id: require('../locales/id.json'),
+      hi: require('../locales/hi.json'),
+      bn: require('../locales/bn.json'),
+      vi: require('../locales/vi.json')
     };
   }
 
