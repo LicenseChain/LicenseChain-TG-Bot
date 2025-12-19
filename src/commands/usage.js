@@ -6,10 +6,11 @@ module.exports = {
   name: 'usage',
   description: 'Get usage analytics',
   
-  async execute(msg, bot, licenseClient, dbManager) {
+  async execute(msg, bot, licenseClient, dbManager, translator) {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
     const args = msg.text.split(' ').slice(1);
+    const lang = await translator.getUserLanguage(userId);
 
     // Parse timeframe (optional)
     const timeframe = args[0] || '30d'; // Default to 30 days
@@ -17,17 +18,14 @@ module.exports = {
     
     if (!validTimeframes.includes(timeframe.toLowerCase())) {
       await bot.sendMessage(chatId, 
-        `❌ *Invalid Timeframe*\n\n` +
-        `Timeframe must be one of: ${validTimeframes.join(', ')}\n` +
-        `Usage: \`/usage [timeframe]\`\n` +
-        `Example: \`/usage 7d\``,
+        translator.t('usage.invalidTimeframe', lang, { timeframes: validTimeframes.join(', ') }),
         { parse_mode: 'Markdown' }
       );
       return;
     }
 
     try {
-      const loadingMsg = await bot.sendMessage(chatId, '🔄 Fetching usage analytics...');
+      const loadingMsg = await bot.sendMessage(chatId, translator.t('usage.fetching', lang));
 
       // Get bot statistics
       const stats = await dbManager.getBotStats();
@@ -57,16 +55,16 @@ module.exports = {
         console.warn('Could not fetch API analytics:', error.message);
       }
 
-      const message = `📊 *Usage Analytics*\n\n` +
-        `*Timeframe:* ${timeframe.toUpperCase()}\n` +
-        (startDate ? `*From:* ${startDate.toLocaleDateString()}\n` : '') +
-        `*To:* ${now.toLocaleDateString()}\n\n` +
-        `*Statistics:*\n` +
-        `🔢 Total Validations: ${apiAnalytics?.validations?.total || totalValidations}\n` +
-        `📈 Daily Average: ${apiAnalytics?.validations?.dailyAverage || averageDaily}\n` +
-        `📊 Peak Usage: ${apiAnalytics?.validations?.peak || 'N/A'}\n` +
-        `⚡ Commands Executed: ${stats.totalCommands || 0}\n\n` +
-        `*Trend:* ${apiAnalytics?.trend || 'Stable'}`;
+      const message = translator.t('usage.title', lang) + '\n\n' +
+        translator.t('usage.timeframe', lang, { timeframe: timeframe.toUpperCase() }) + '\n' +
+        (startDate ? translator.t('usage.from', lang, { date: startDate.toLocaleDateString() }) + '\n' : '') +
+        translator.t('usage.to', lang, { date: now.toLocaleDateString() }) + '\n\n' +
+        translator.t('usage.statistics', lang) + '\n' +
+        translator.t('usage.totalValidations', lang, { count: apiAnalytics?.validations?.total || totalValidations }) + '\n' +
+        translator.t('usage.dailyAverage', lang, { count: apiAnalytics?.validations?.dailyAverage || averageDaily }) + '\n' +
+        translator.t('usage.peakUsage', lang, { peak: apiAnalytics?.validations?.peak || translator.t('usage.na', lang) }) + '\n' +
+        translator.t('usage.commandsExecuted', lang, { count: stats.totalCommands || 0 }) + '\n\n' +
+        translator.t('usage.trend', lang, { trend: apiAnalytics?.trend || translator.t('usage.stable', lang) });
 
       await bot.editMessageText(message, {
         chat_id: chatId,
@@ -76,10 +74,9 @@ module.exports = {
 
     } catch (error) {
       console.error('Error getting usage analytics:', error);
+      const lang = await translator.getUserLanguage(userId);
       await bot.sendMessage(chatId, 
-        `❌ *Error*\n\n` +
-        `An error occurred while fetching usage analytics:\n` +
-        `\`${error.message}\``,
+        translator.t('usage.error', lang, { error: error.message }),
         { parse_mode: 'Markdown' }
       );
     }

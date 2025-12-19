@@ -200,17 +200,51 @@ Note: Requires admin privileges`
 module.exports = {
     name: 'help',
     description: 'Show help information and available commands',
-    execute: async (msg, bot, licenseClient, dbManager) => {
+    execute: async (msg, bot, licenseClient, dbManager, translator) => {
         const chatId = msg.chat.id;
         const userId = msg.from.id;
         const username = msg.from.username || 'Unknown';
+        const lang = await translator.getUserLanguage(userId);
         
         try {
             const logger = new Logger('HelpCommand');
             logger.info(`Help command received from user ${userId} (${username})`);
             
-            const helpCommand = new HelpCommand(licenseClient);
-            const message = helpCommand.getHelpMessage();
+            const message = translator.t('help.title', lang) + '\n\n' +
+              translator.t('help.availableCommands', lang) + '\n\n' +
+              translator.t('help.startCmd', lang) + '\n' +
+              translator.t('help.helpCmd', lang) + '\n' +
+              translator.t('help.validateCmd', lang) + '\n' +
+              translator.t('help.createCmd', lang) + '\n' +
+              translator.t('help.infoCmd', lang) + '\n' +
+              translator.t('help.listCmd', lang) + '\n' +
+              translator.t('help.revokeCmd', lang) + '\n' +
+              translator.t('help.extendCmd', lang) + '\n' +
+              translator.t('help.statsCmd', lang) + '\n' +
+              translator.t('help.settingsCmd', lang) + '\n\n' +
+              translator.t('help.howToUse', lang) + '\n\n' +
+              translator.t('help.validateLicense', lang) + '\n\n' +
+              translator.t('help.createLicense', lang) + '\n\n' +
+              translator.t('help.getInfo', lang) + '\n\n' +
+              translator.t('help.listLicenses', lang) + '\n\n' +
+              translator.t('help.revokeLicense', lang) + '\n\n' +
+              translator.t('help.extendLicense', lang) + '\n\n' +
+              translator.t('help.getStats', lang) + '\n\n' +
+              translator.t('help.settings', lang) + '\n\n' +
+              translator.t('help.features', lang) + '\n\n' +
+              translator.t('help.licenseValidation', lang) + '\n' +
+              translator.t('help.licenseCreation', lang) + '\n' +
+              translator.t('help.userManagement', lang) + '\n' +
+              translator.t('help.statisticsTracking', lang) + '\n' +
+              translator.t('help.adminPanel', lang) + '\n' +
+              translator.t('help.webhookSupport', lang) + '\n' +
+              translator.t('help.errorHandling', lang) + '\n' +
+              translator.t('help.logging', lang) + '\n\n' +
+              translator.t('help.support', lang) + '\n\n' +
+              translator.t('help.supportText', lang) + '\n\n' +
+              translator.t('help.version', lang, { version: process.env.LICENSECHAIN_APP_VERSION || '1.0.0' }) + '\n' +
+              translator.t('help.lastUpdated', lang, { date: new Date().toLocaleDateString() });
+            
             // Try Markdown first, fallback to plain text if parsing fails
             try {
                 await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
@@ -224,7 +258,8 @@ module.exports = {
             }
         } catch (error) {
             console.error('Error in help command:', error);
-            await bot.sendMessage(chatId, '❌ An error occurred. Please try again later.');
+            const lang = await translator.getUserLanguage(userId);
+            await bot.sendMessage(chatId, translator.t('help.error', lang));
         }
     }
 };

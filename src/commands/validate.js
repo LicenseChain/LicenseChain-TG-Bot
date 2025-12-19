@@ -33,7 +33,7 @@ module.exports = {
       if (result.valid) {
         message = translator.t('validate.valid', lang, {
           key: licenseKey,
-          message: result.message || translator.t('validate.valid', lang, { key: licenseKey, message: 'License is valid and active' }).split('Message: ')[1] || 'License is valid and active'
+          message: result.message || 'License is valid and active'
         });
 
         if (result.expiresAt) {
