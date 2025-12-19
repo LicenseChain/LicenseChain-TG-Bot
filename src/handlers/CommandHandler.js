@@ -6,10 +6,11 @@ const fs = require('fs');
 const path = require('path');
 
 class CommandHandler {
-  constructor(bot, licenseClient, dbManager) {
+  constructor(bot, licenseClient, dbManager, translator) {
     this.bot = bot;
     this.licenseClient = licenseClient;
     this.dbManager = dbManager;
+    this.translator = translator;
     this.commands = new Map();
   }
 
@@ -90,7 +91,7 @@ class CommandHandler {
               console.error('Error logging command:', err);
             });
             
-            await command.execute(msg, this.bot, this.licenseClient, this.dbManager);
+            await command.execute(msg, this.bot, this.licenseClient, this.dbManager, this.translator);
           } catch (error) {
             console.error(`Error executing command ${commandName}:`, error);
             await this.bot.sendMessage(msg.chat.id, '❌ An error occurred while processing your command.');

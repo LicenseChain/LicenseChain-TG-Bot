@@ -118,11 +118,9 @@ module.exports = {
         expiresAt: newExpiresAt.toISOString()
       };
 
-      // Try to update via license key (if API supports it)
-      // Otherwise, we'll need to get the license ID first
+      // Update license expiration using updateLicense
+      // The API uses licenseKey as the identifier
       try {
-        // For now, use the updateLicense method - it may need the license ID
-        // We'll need to check if the API supports updating by key
         const result = await licenseClient.updateLicense(licenseKey, updateData);
 
         const message = `✅ *License Extended*\n\n` +

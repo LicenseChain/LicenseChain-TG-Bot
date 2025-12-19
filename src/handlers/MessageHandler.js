@@ -6,10 +6,11 @@
 const Logger = require('../utils/Logger');
 
 class MessageHandler {
-  constructor(bot, licenseClient, dbManager) {
+  constructor(bot, licenseClient, dbManager, translator) {
     this.bot = bot;
     this.licenseClient = licenseClient;
     this.dbManager = dbManager;
+    this.translator = translator;
     this.logger = new Logger('MessageHandler');
   }
 
@@ -279,50 +280,60 @@ class MessageHandler {
 
   async handleShowSettingsCallback(query) {
     try {
-      await this.bot.answerCallbackQuery(query.id, { text: 'Loading settings...' });
-      
       const userId = query.from.id;
+      const lang = await this.translator.getUserLanguage(userId);
+      
+      await this.bot.answerCallbackQuery(query.id, { text: this.translator.t('common.loading', lang) });
       
       // Get user settings
       const settings = await this.dbManager.getUserSettings(userId);
       
-      const notificationsStatus = settings.notifications_enabled ? 'Enabled' : 'Disabled';
-      const analyticsStatus = settings.analytics_enabled ? 'Enabled' : 'Disabled';
+      const notificationsStatus = settings.notifications_enabled 
+        ? this.translator.t('settings.enabled', lang) 
+        : this.translator.t('settings.disabled', lang);
+      const analyticsStatus = settings.analytics_enabled 
+        ? this.translator.t('settings.enabled', lang) 
+        : this.translator.t('settings.disabled', lang);
+      
       const languageMap = {
-        'en': 'English',
-        'es': 'Spanish',
-        'fr': 'French',
-        'de': 'German'
+        'en': this.translator.t('settings.english', lang),
+        'es': this.translator.t('settings.spanish', lang),
+        'fr': this.translator.t('settings.french', lang),
+        'de': this.translator.t('settings.german', lang)
       };
-      const languageName = languageMap[settings.language] || settings.language || 'English';
+      const languageName = languageMap[settings.language] || settings.language || this.translator.t('settings.english', lang);
 
-      const settingsMessage = `⚙️ *Bot Settings*\n\n` +
-        `*Current Settings:*\n` +
-        `🔔 Notifications: ${notificationsStatus}\n` +
-        `📊 Analytics: ${analyticsStatus}\n` +
-        `🌐 Language: ${languageName}\n\n` +
-        `*Tap buttons below to change settings:*`;
+      const settingsMessage = this.translator.t('settings.title', lang) + '\n\n' +
+        this.translator.t('settings.currentSettings', lang) + '\n' +
+        this.translator.t('settings.notifications', lang, { status: notificationsStatus }) + '\n' +
+        this.translator.t('settings.analytics', lang, { status: analyticsStatus }) + '\n' +
+        this.translator.t('settings.language', lang, { name: languageName }) + '\n\n' +
+        this.translator.t('settings.tapButtons', lang);
 
       const keyboard = {
         reply_markup: {
           inline_keyboard: [
             [
               { 
-                text: settings.notifications_enabled ? '🔔 Notifications: ON' : '🔕 Notifications: OFF',
+                text: settings.notifications_enabled 
+                  ? this.translator.t('settings.notificationsOn', lang) 
+                  : this.translator.t('settings.notificationsOff', lang),
                 callback_data: `toggle_setting:notifications:${settings.notifications_enabled ? '0' : '1'}`
               }
             ],
             [
               { 
-                text: settings.analytics_enabled ? '📊 Analytics: ON' : '📊 Analytics: OFF',
+                text: settings.analytics_enabled 
+                  ? this.translator.t('settings.analyticsOn', lang) 
+                  : this.translator.t('settings.analyticsOff', lang),
                 callback_data: `toggle_setting:analytics:${settings.analytics_enabled ? '0' : '1'}`
               }
             ],
             [
-              { text: '🌐 Language', callback_data: 'change_language' }
+              { text: this.translator.t('settings.languageButton', lang), callback_data: 'change_language' }
             ],
             [
-              { text: '🔄 Refresh', callback_data: 'show_settings' }
+              { text: this.translator.t('settings.refresh', lang), callback_data: 'show_settings' }
             ]
           ]
         }
@@ -334,28 +345,25 @@ class MessageHandler {
       });
     } catch (error) {
       this.logger.error('Error showing settings:', error);
-      await this.bot.answerCallbackQuery(query.id, { text: 'Error showing settings' });
+      const lang = await this.translator.getUserLanguage(query.from.id);
+      await this.bot.answerCallbackQuery(query.id, { text: this.translator.t('settings.error', lang) });
     }
   }
 
   async handleShowProfileCallback(query) {
     try {
-      await this.bot.answerCallbackQuery(query.id, { text: 'Profile information' });
-      
       const userId = query.from.id;
-      const user = await this.dbManager.getUser(userId);
+      const lang = await this.translator.getUserLanguage(userId);
       
-      if (!user) {
-        // Create user if doesn't exist
-        await this.dbManager.getOrCreateUser({
-          id: userId,
-          username: query.from.username,
-          first_name: query.from.first_name,
-          last_name: query.from.last_name
-        });
-        await this.bot.sendMessage(query.message.chat.id, '✅ Profile created! Use /profile again to see your information.');
-        return;
-      }
+      await this.bot.answerCallbackQuery(query.id, { text: this.translator.t('common.loading', lang) });
+      
+      // Get or create user in local database
+      const user = await this.dbManager.getOrCreateUser({
+        id: userId,
+        username: query.from.username,
+        first_name: query.from.first_name,
+        last_name: query.from.last_name
+      });
       
       // Get licenses from LicenseChain API if app name is configured
       let apiLicenses = [];
@@ -392,23 +400,44 @@ class MessageHandler {
       const totalLicenses = apiLicenses.length;
       const activeLicenses = apiLicenses.filter(l => l.status?.toLowerCase() === 'active').length;
       
-      const profileMessage = `👤 *Your Profile*\n\n` +
-        `*User ID:* ${user.telegram_id}\n` +
-        `*Username:* ${user.username || 'Not set'}\n` +
-        `*Name:* ${user.first_name || ''} ${user.last_name || ''}\n` +
-        `*Member since:* ${new Date(user.created_at).toLocaleDateString()}\n\n` +
-        `*Statistics:*\n` +
-        `📋 Licenses: ${totalLicenses}\n` +
-        `✅ Active Licenses: ${activeLicenses}\n` +
-        `✅ Validations: 0\n\n` +
-        `Use /profile to update your information.`;
+      // Get actual validation count (not all commands)
+      const validationCount = await this.dbManager.getValidationCount(userId);
+      
+      const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || this.translator.t('profile.notSet', lang);
+      
+      const profileMessage = this.translator.t('profile.title', lang) + '\n\n' +
+        this.translator.t('profile.userId', lang, { id: user.telegram_id }) + '\n' +
+        this.translator.t('profile.username', lang, { username: user.username || this.translator.t('profile.notSet', lang) }) + '\n' +
+        this.translator.t('profile.name', lang, { name: fullName }) + '\n' +
+        this.translator.t('profile.memberSince', lang, { date: new Date(user.created_at).toLocaleDateString() }) + '\n\n' +
+        this.translator.t('profile.statistics', lang) + '\n' +
+        this.translator.t('profile.licenses', lang, { count: totalLicenses }) + '\n' +
+        this.translator.t('profile.activeLicenses', lang, { count: activeLicenses }) + '\n' +
+        this.translator.t('profile.validations', lang, { count: validationCount }) + '\n\n' +
+        this.translator.t('profile.tapButtons', lang);
+
+      const keyboard = {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: this.translator.t('profile.editUsername', lang), callback_data: 'edit_profile:username' },
+              { text: this.translator.t('profile.editName', lang), callback_data: 'edit_profile:name' }
+            ],
+            [
+              { text: this.translator.t('profile.refresh', lang), callback_data: 'show_profile' }
+            ]
+          ]
+        }
+      };
       
       await this.bot.sendMessage(query.message.chat.id, profileMessage, {
-        parse_mode: 'Markdown'
+        parse_mode: 'Markdown',
+        ...keyboard
       });
     } catch (error) {
       this.logger.error('Error showing profile:', error);
-      await this.bot.answerCallbackQuery(query.id, { text: 'Error showing profile' });
+      const lang = await this.translator.getUserLanguage(query.from.id);
+      await this.bot.answerCallbackQuery(query.id, { text: this.translator.t('profile.error', lang) });
     }
   }
 

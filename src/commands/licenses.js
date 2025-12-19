@@ -91,9 +91,21 @@ module.exports = {
             // Filter by user if not admin viewing all
             if (!isAdmin || targetUserId !== userId.toString()) {
               // Filter licenses by email or issuedTo matching user
-              // This is a simplified filter - adjust based on your data structure
+              // For Telegram user IDs, we need to match by email or issuedTo
+              // This is a simplified filter - in practice, you'd match by user's email
               licenses = licenses.filter(license => {
-                return license.issuedEmail || license.issuedTo;
+                // Match if license has email or issuedTo that could belong to this user
+                // Note: This is a placeholder - implement proper user-to-license matching
+                return license.issuedEmail || license.issuedTo || license.email;
+              });
+            } else if (isAdmin && targetUserId !== userId.toString()) {
+              // Admin viewing specific user - filter by user identifier
+              // Try to match by email or issuedTo
+              licenses = licenses.filter(license => {
+                const userStr = targetUserId.toString();
+                return license.issuedEmail === userStr || 
+                       license.issuedTo === userStr || 
+                       license.email === userStr;
               });
             }
           } catch (err) {

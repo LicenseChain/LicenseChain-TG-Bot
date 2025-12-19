@@ -104,8 +104,8 @@ module.exports = {
         `*Uptime:* ${uptimeHours}h ${uptimeMinutes}m\n` +
         `*Memory Usage:* ${memoryMB} MB\n\n` +
         `*Statistics:*\n` +
-        `👥 Total Users: ${stats.totalUsers}\n` +
-        `📋 Total Licenses: ${stats.totalLicenses}\n` +
+        `👥 Total Users: ${uniqueUsers}\n` +
+        `📋 Total Licenses: ${totalLicenses}\n` +
         `⚡ Total Commands: ${stats.totalCommands}\n\n` +
         `*Environment:*\n` +
         `App Name: ${process.env.LICENSECHAIN_APP_NAME || 'Not set'}\n` +

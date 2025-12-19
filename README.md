@@ -1,6 +1,6 @@
-# LicenseChain Telegram Bot
+﻿# LicenseChain Telegram Bot
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-ELASTIC2.0-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-16+-green.svg)](https://nodejs.org/)
 [![Telegraf](https://img.shields.io/badge/Telegraf-4.0+-blue.svg)](https://telegraf.js.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.5+-blue.svg)](https://www.typescriptlang.org/)
@@ -97,7 +97,7 @@ TELEGRAM_WEBHOOK_URL=your-webhook-url
 LICENSECHAIN_API_KEY=your-api-key
 LICENSECHAIN_APP_NAME=your-app-name
 LICENSECHAIN_APP_VERSION=1.0.0
-LICENSECHAIN_BASE_URL=https://api.licensechain.app
+LICENSE_CHAIN_API_URL=https://api.licensechain.app
 
 # Bot Configuration
 BOT_DEBUG=false

@@ -6,7 +6,7 @@ module.exports = {
   name: 'profile',
   description: 'Manage your profile',
   
-  async execute(msg, bot, licenseClient, dbManager) {
+  async execute(msg, bot, licenseClient, dbManager, translator) {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
 
@@ -18,6 +18,8 @@ module.exports = {
         first_name: msg.from.first_name,
         last_name: msg.from.last_name
       });
+      
+      const lang = await translator.getUserLanguage(userId);
       
       // Get licenses from LicenseChain API if app name is configured
       let apiLicenses = [];
@@ -57,26 +59,28 @@ module.exports = {
       // Get actual validation count (not all commands)
       const validationCount = await dbManager.getValidationCount(userId);
       
-      const profileMessage = `👤 *Your Profile*\n\n` +
-        `*User ID:* ${user.telegram_id}\n` +
-        `*Username:* ${user.username || 'Not set'}\n` +
-        `*Name:* ${user.first_name || ''} ${user.last_name || ''}\n` +
-        `*Member since:* ${new Date(user.created_at).toLocaleDateString()}\n\n` +
-        `*Statistics:*\n` +
-        `📋 Licenses: ${totalLicenses}\n` +
-        `✅ Active Licenses: ${activeLicenses}\n` +
-        `✅ Validations: ${validationCount}\n\n` +
-        `*Tap buttons below to update your information:*`;
+      const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || translator.t('profile.notSet', lang);
+      
+      const profileMessage = translator.t('profile.title', lang) + '\n\n' +
+        translator.t('profile.userId', lang, { id: user.telegram_id }) + '\n' +
+        translator.t('profile.username', lang, { username: user.username || translator.t('profile.notSet', lang) }) + '\n' +
+        translator.t('profile.name', lang, { name: fullName }) + '\n' +
+        translator.t('profile.memberSince', lang, { date: new Date(user.created_at).toLocaleDateString() }) + '\n\n' +
+        translator.t('profile.statistics', lang) + '\n' +
+        translator.t('profile.licenses', lang, { count: totalLicenses }) + '\n' +
+        translator.t('profile.activeLicenses', lang, { count: activeLicenses }) + '\n' +
+        translator.t('profile.validations', lang, { count: validationCount }) + '\n\n' +
+        translator.t('profile.tapButtons', lang);
 
       const keyboard = {
         reply_markup: {
           inline_keyboard: [
             [
-              { text: '✏️ Edit Username', callback_data: 'edit_profile:username' },
-              { text: '✏️ Edit Name', callback_data: 'edit_profile:name' }
+              { text: translator.t('profile.editUsername', lang), callback_data: 'edit_profile:username' },
+              { text: translator.t('profile.editName', lang), callback_data: 'edit_profile:name' }
             ],
             [
-              { text: '🔄 Refresh', callback_data: 'show_profile' }
+              { text: translator.t('profile.refresh', lang), callback_data: 'show_profile' }
             ]
           ]
         }
@@ -88,7 +92,8 @@ module.exports = {
       });
     } catch (error) {
       console.error('Error in profile command:', error);
-      await bot.sendMessage(chatId, '❌ An error occurred while retrieving your profile.');
+      const lang = await translator.getUserLanguage(userId);
+      await bot.sendMessage(chatId, translator.t('profile.error', lang));
     }
   }
 };

@@ -18,6 +18,7 @@ const CommandHandler = require('./handlers/CommandHandler');
 const MessageHandler = require('./handlers/MessageHandler');
 const DatabaseManager = require('./database/DatabaseManager');
 const Scheduler = require('./utils/Scheduler');
+const Translator = require('./utils/Translator');
 
 // Configure logger
 const logger = winston.createLogger({
@@ -49,8 +50,9 @@ const licenseClient = new LicenseChainClient({
 });
 
 const dbManager = new DatabaseManager();
-const commandHandler = new CommandHandler(bot, licenseClient, dbManager);
-const messageHandler = new MessageHandler(bot, licenseClient, dbManager);
+const translator = new Translator(dbManager);
+const commandHandler = new CommandHandler(bot, licenseClient, dbManager, translator);
+const messageHandler = new MessageHandler(bot, licenseClient, dbManager, translator);
 const scheduler = new Scheduler(bot, licenseClient, dbManager);
 
 // Bot ready event
@@ -119,7 +121,7 @@ app.get('/health', (req, res) => {
     bot: 'online',
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: process.env.LICENSECHAIN_APP_VERSION || '1.0.0'
   });
 });
 

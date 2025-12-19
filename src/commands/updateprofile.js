@@ -13,12 +13,14 @@ module.exports = {
 
     if (args.length < 2) {
       await bot.sendMessage(chatId, 
-        '❌ *Usage:*\n\n' +
-        'Update username: `/updateprofile username <new_username>`\n' +
-        'Update name: `/updateprofile name <first_name> [last_name]`\n\n' +
-        'Example: `/updateprofile username newusername`\n' +
-        'Example: `/updateprofile name John`\n' +
-        'Example: `/updateprofile name John Doe`',
+        '❌ *Usage:* `/updateprofile <field> <value>`\n\n' +
+        'Fields:\n' +
+        '  `username <new_username>` - Update username\n' +
+        '  `name <first_name> [last_name]` - Update name\n\n' +
+        'Examples:\n' +
+        '  `/updateprofile username newusername`\n' +
+        '  `/updateprofile name John`\n' +
+        '  `/updateprofile name John Doe`',
         { parse_mode: 'Markdown' }
       );
       return;
@@ -36,12 +38,14 @@ module.exports = {
         updateData.username = value;
       } else if (field === 'name') {
         const nameParts = value.split(' ');
-        updateData.first_name = nameParts[0] || '';
-        updateData.last_name = nameParts.slice(1).join(' ') || '';
+        updateData.first_name = nameParts[0];
+        if (nameParts.length > 1) {
+          updateData.last_name = nameParts.slice(1).join(' ');
+        }
       } else {
         await bot.editMessageText(
           '❌ *Invalid Field*\n\n' +
-          'Field must be either "username" or "name".\n' +
+          `Field must be "username" or "name"\n` +
           `You provided: ${field}`,
           {
             chat_id: chatId,
