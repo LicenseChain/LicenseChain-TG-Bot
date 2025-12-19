@@ -119,3 +119,7 @@ config.json
 data/
 backups/
 *.db
+
+# Another files
+.cursorindexingignore
+.specstory/
