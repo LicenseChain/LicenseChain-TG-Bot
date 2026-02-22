@@ -20,6 +20,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unused dependencies: `moment`, `lodash`
 - Unused bot wrapper files: `DiscordBot.js`, `TelegramBot.js`
 
+## [1.0.1] - 2026-02-22
+
+### Fixed
+
+- Fixed ESLint configuration module error by renaming `eslint.config.js` to `eslint.config.mjs`
+- Fixed all lint errors: unreachable code, undefined variables, duplicate cases, unnecessary try/catch
+- Fixed `loadingMsg` undefined errors in multiple command files (info, update, validate, errors, licenses, revoke)
+- Fixed duplicate case labels in MessageHandler.js
+- Fixed duplicate function definition `handleCreateCallback`
+- Fixed `hasOwnProperty` usage to use `Object.prototype.hasOwnProperty.call()`
+- Fixed duplicate else-if condition in licenses.js
+- Updated test script to use `--passWithNoTests` flag
+
+### Changed
+
+- CI/CD workflow now passes all checks (lint, test, build)
+- ESLint configuration now properly recognized as ES module
+
 ## [1.0.0] - 2026-02-21
 
 ### Added
@@ -52,5 +70,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/licensechain/telegram-bot/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/licensechain/telegram-bot/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/licensechain/telegram-bot/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/licensechain/telegram-bot/releases/tag/v1.0.0
