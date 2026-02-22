@@ -183,3 +183,20 @@ Any other user must get "Access denied" or "not authorized" on the above.
 7. **PermissionManager:** As admin: `/status` → status message; as non-admin: `/status` → access denied.
 
 If all items in the quick smoke sequence pass, the core workflow (startup, Validator, PermissionManager, admin panel including Products/Webhooks/Health, help, usage period) is working as intended.
+
+---
+
+## Implementation alignment
+
+The TG-Bot codebase is aligned with this checklist for the LicenseChain ecosystem:
+
+- **Startup (§1):** `TELEGRAM_TOKEN` required (exit); `LICENSE_CHAIN_API_KEY` warning when missing.
+- **General (§2):** `/start` shows welcome + inline buttons (Validate, Analytics, Profile, Settings, Help); `/help` and `/help <command>` with command-specific help and "Command not found. Use /help to see all available commands." for unknown commands; `/profile` (with optional linked-account tier/role); `/settings`, `/license`, `/list`, `/analytics`, `/usage [7d|30d|90d|1y|all]` with invalid-period error; `/info`.
+- **Validate (§3):** Validator on key; usage when no key; invalid key format/length; plain-text license key handled by MessageHandler.
+- **Admin (§4):** Non-admin gets "not authorized" or "Access denied. Administrators only." on admin-only commands; admin panel includes Statistics, Users, Licenses, Products, Webhooks, Health, System, Logs, **Settings** (configure via ADMIN_USERS, BOT_OWNER_ID); callbacks for each; create/extend/revoke/update with Validator and usage messages.
+- **Tickets (§5):** `/tickets`, create, view own/admin, close (admin).
+- **Callbacks (§6):** Start buttons, validate, profile, settings, analytics, help; admin panel callbacks; settings toggles and language.
+- **PermissionManager (§7):** All admin actions gated by `ADMIN_USERS` / `BOT_OWNER_ID`.
+- **Validator (§8):** License key, email, integer (min 1), period (7d, 30d, 90d, 1y; usage also supports `all`).
+
+When changing behavior, update this checklist and the code together so they stay in sync.

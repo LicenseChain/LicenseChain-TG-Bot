@@ -97,10 +97,10 @@ class CommandHandler {
             await this.bot.sendMessage(msg.chat.id, '❌ An error occurred while processing your command.');
           }
         } else {
-          // Command not found
+          // Command not found (aligned with TEST_WORKFLOW_CHECKLIST.md §2.5)
           await this.bot.sendMessage(msg.chat.id, 
-            `❌ Unknown command: /${commandName}\n\n` +
-            `Type /help to see all available commands.`
+            'Command not found. Use /help to see all available commands.',
+            { parse_mode: 'Markdown' }
           );
         }
       }

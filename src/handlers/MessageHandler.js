@@ -642,7 +642,7 @@ class MessageHandler {
           await adminCommand.handleLogs(ctx);
           break;
         case 'settings':
-          await ctx.reply('Admin settings: configure via environment variables (ADMIN_USERS, BOT_OWNER_ID).');
+          await ctx.reply('Admin settings: configure via ADMIN_USERS and BOT_OWNER_ID in your environment.');
           break;
         default:
           await ctx.reply('Unknown admin action.');

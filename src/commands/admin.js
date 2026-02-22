@@ -35,6 +35,9 @@ class AdminCommand {
                     [
                         { text: '🔧 System', callback_data: 'admin:system' },
                         { text: '📝 Logs', callback_data: 'admin:logs' }
+                    ],
+                    [
+                        { text: '⚙️ Settings', callback_data: 'admin:settings' }
                     ]
                 ]
             };
@@ -306,6 +309,9 @@ module.exports = {
                     [
                         { text: '🔧 System', callback_data: 'admin:system' },
                         { text: '📝 Logs', callback_data: 'admin:logs' }
+                    ],
+                    [
+                        { text: '⚙️ Settings', callback_data: 'admin:settings' }
                     ]
                 ]
             };
