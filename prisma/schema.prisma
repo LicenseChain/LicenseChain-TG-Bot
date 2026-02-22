@@ -1,0 +1,128 @@
+// LicenseChain Telegram Bot - PostgreSQL schema for tg_bot_* tables
+// The bot uses the `pg` driver and DatabaseManager.js; this schema documents the tables
+// and enables optional Prisma migrations. Set DATABASE_URL in .env.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Users (Telegram identity)
+// ---------------------------------------------------------------------------
+model TgBotUser {
+  id          String   @id @default(cuid())
+  telegram_id BigInt   @unique
+  username    String?
+  first_name  String?
+  last_name   String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  commands      TgBotCommand[]
+  validations   TgBotValidation[]
+  user_settings TgBotUserSetting?
+  tickets       TgBotTicket[]
+
+  @@map("tg_bot_users")
+}
+
+// ---------------------------------------------------------------------------
+// Command usage log (for stats and analytics)
+// ---------------------------------------------------------------------------
+model TgBotCommand {
+  id        String   @id @default(cuid())
+  user_id   String
+  command   String
+  created_at DateTime @default(now())
+
+  user TgBotUser @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([created_at])
+  @@map("tg_bot_commands")
+}
+
+// ---------------------------------------------------------------------------
+// License validation log (key validated, result)
+// ---------------------------------------------------------------------------
+model TgBotValidation {
+  id         String   @id @default(cuid())
+  user_id    String
+  license_key String
+  is_valid   Boolean  // true = valid, false = invalid
+  created_at DateTime @default(now())
+
+  user TgBotUser @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([created_at])
+  @@map("tg_bot_validations")
+}
+
+// ---------------------------------------------------------------------------
+// Per-user bot settings (notifications, analytics, language)
+// ---------------------------------------------------------------------------
+model TgBotUserSetting {
+  id                   String   @id @default(cuid())
+  user_id              String   @unique
+  notifications_enabled Int     @default(1) // 0 or 1
+  analytics_enabled    Int      @default(1) // 0 or 1
+  language             String   @default("en")
+  updated_at           DateTime @updatedAt
+
+  user TgBotUser @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("tg_bot_user_settings")
+}
+
+// ---------------------------------------------------------------------------
+// Local license cache / count (used for getBotStats totalLicenses)
+// Structure may vary; bot only runs COUNT(*). Adjust if you use this table.
+// ---------------------------------------------------------------------------
+model TgBotLicense {
+  id          String   @id @default(cuid())
+  user_id     String?
+  license_key String?
+  created_at  DateTime @default(now())
+
+  @@index([user_id])
+  @@map("tg_bot_licenses")
+}
+
+// ---------------------------------------------------------------------------
+// Support tickets
+// ---------------------------------------------------------------------------
+model TgBotTicket {
+  id          String   @id @default(cuid())
+  ticket_id   String   @unique // e.g. TKT-1234567890-ABC
+  user_id     String
+  subject     String
+  description String?
+  status      String   @default("open") // open, closed, etc.
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user TgBotUser @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([status])
+  @@index([created_at])
+  @@map("tg_bot_tickets")
+}
+
+// ---------------------------------------------------------------------------
+// Bot status (single effective row: online, offline, maintenance)
+// ---------------------------------------------------------------------------
+model TgBotBotStatus {
+  id         String   @id @default(cuid())
+  status     String   // online | offline | maintenance
+  updated_by String?
+  updated_at DateTime @updatedAt
+
+  @@map("tg_bot_bot_status")
+}
