@@ -70,9 +70,7 @@ class CommandHandler {
           const mCommand = this.commands.get('m');
           if (mCommand) {
             try {
-              await this.dbManager.logCommand(msg.from.id, 'm').catch(err => {
-                console.error('Error logging command:', err);
-              });
+              this.dbManager.logCommand(msg.from.id, 'm').catch(() => {});
               await mCommand.execute(msg, this.bot, this.licenseClient, this.dbManager);
             } catch (error) {
               console.error(`Error executing command m:`, error);
@@ -86,11 +84,7 @@ class CommandHandler {
         
         if (command) {
           try {
-            // Log command execution
-            await this.dbManager.logCommand(msg.from.id, commandName).catch(err => {
-              console.error('Error logging command:', err);
-            });
-            
+            this.dbManager.logCommand(msg.from.id, commandName).catch(() => {});
             await command.execute(msg, this.bot, this.licenseClient, this.dbManager, this.translator);
           } catch (error) {
             console.error(`Error executing command ${commandName}:`, error);
