@@ -380,15 +380,16 @@ class LicenseChainClient {
   }
 
   /**
-   * Verify webhook signature
+   * Verify webhook signature (HMAC-SHA256) using constant-time comparison.
    */
   verifyWebhookSignature(payload, signature, secret) {
-    const expectedSignature = crypto
-      .createHmac('sha256', secret)
-      .update(payload)
-      .digest('hex');
-    
-    return signature === `sha256=${expectedSignature}`;
+    if (!payload || !signature || !secret) return false;
+    const expected = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    const received = String(signature).startsWith('sha256=') ? String(signature).slice(7) : String(signature);
+    const a = Buffer.from(expected, 'hex');
+    const b = Buffer.from(received, 'hex');
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
   }
 
   /**
