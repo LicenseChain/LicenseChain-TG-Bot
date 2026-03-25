@@ -3,6 +3,8 @@
  * Supports: /licenses [timeframe] or /licenses <user-id> [timeframe]
  */
 
+const { getLinkedUser } = require('../client/DashboardClient');
+
 module.exports = {
   name: 'licenses',
   description: 'Get license analytics',
@@ -72,6 +74,8 @@ module.exports = {
       let licenseError = null;
       let apiError = null;
 
+      let isUnlinked = false;
+
       if (appName) {
         try {
           // Try to get app first, or use appName directly as appId
@@ -93,23 +97,41 @@ module.exports = {
             // Filter by user if not admin viewing all
             if (!isAdmin || targetUserId !== userId.toString()) {
               if (isAdmin && targetUserId !== userId.toString()) {
-                // Admin viewing specific user - filter by user identifier
-                // Try to match by email or issuedTo
-                licenses = licenses.filter(license => {
-                  const userStr = targetUserId.toString();
-                  return license.issuedEmail === userStr || 
-                         license.issuedTo === userStr || 
-                         license.email === userStr;
-                });
+                // Admin viewing specific user: scope by Dashboard-linked email.
+                const linked = await getLinkedUser(targetUserId, { platform: 'telegram' });
+                const linkedEmail = (linked && linked.email ? String(linked.email) : '').trim().toLowerCase();
+                if (!linkedEmail) {
+                  isUnlinked = true;
+                  licenses = [];
+                } else {
+                  licenses = licenses.filter((license) => {
+                    const issuedEmail = (license?.issuedEmail ? String(license.issuedEmail) : '')
+                      .trim()
+                      .toLowerCase();
+                    const email = (license?.email ? String(license.email) : '')
+                      .trim()
+                      .toLowerCase();
+                    return issuedEmail === linkedEmail || email === linkedEmail;
+                  });
+                }
               } else {
-                // Filter licenses by email or issuedTo matching user
-                // For Telegram user IDs, we need to match by email or issuedTo
-                // This is a simplified filter - in practice, you'd match by user's email
-                licenses = licenses.filter(license => {
-                  // Match if license has email or issuedTo that could belong to this user
-                  // Note: This is a placeholder - implement proper user-to-license matching
-                  return license.issuedEmail || license.issuedTo || license.email;
-                });
+                // User viewing their own analytics: scope by Dashboard-linked email.
+                const linked = await getLinkedUser(userId, { platform: 'telegram' });
+                const linkedEmail = (linked && linked.email ? String(linked.email) : '').trim().toLowerCase();
+                if (!linkedEmail) {
+                  isUnlinked = true;
+                  licenses = [];
+                } else {
+                  licenses = licenses.filter((license) => {
+                    const issuedEmail = (license?.issuedEmail ? String(license.issuedEmail) : '')
+                      .trim()
+                      .toLowerCase();
+                    const email = (license?.email ? String(license.email) : '')
+                      .trim()
+                      .toLowerCase();
+                    return issuedEmail === linkedEmail || email === linkedEmail;
+                  });
+                }
               }
             }
           } catch (err) {
@@ -124,6 +146,20 @@ module.exports = {
 
       // If no licenses found via API, try to show a helpful message
       if (licenses.length === 0) {
+        if (isUnlinked) {
+          await bot.editMessageText(
+            `📋 *User Licenses*\n\n` +
+              `It looks like your LicenseChain account is not linked in the Dashboard.\n\n` +
+              `Please link your account, then run this command again.`,
+            {
+              chat_id: chatId,
+              message_id: loadingMsg.message_id,
+              parse_mode: 'Markdown'
+            }
+          );
+          return;
+        }
+
         // Check if API call failed due to auth
         const apiFailed = licenseError || apiError;
         
