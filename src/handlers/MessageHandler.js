@@ -4,6 +4,7 @@
  */
 
 const Logger = require('../utils/Logger');
+const Validator = require('../utils/Validator');
 
 class MessageHandler {
   constructor(bot, licenseClient, dbManager, translator) {
@@ -1031,12 +1032,12 @@ class MessageHandler {
   }
 
   isLicenseKey(text) {
-    // License key format: LC-XXXXXX-XXXXXX-XXXXXX (23 characters)
-    // Or simple alphanumeric 32 characters
-    if (text.length === 23 && text.startsWith('LC-')) {
-      return /^LC-[A-Z0-9]{6}-[A-Z0-9]{6}-[A-Z0-9]{6}$/.test(text);
+    try {
+      Validator.validateLicenseKey(text);
+      return true;
+    } catch (_err) {
+      return false;
     }
-    return text.length === 32 && /^[A-Z0-9]+$/.test(text);
   }
 }
 

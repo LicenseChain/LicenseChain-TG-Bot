@@ -1,4 +1,5 @@
 const Logger = require('../utils/Logger');
+const Validator = require('../utils/Validator');
 
 class EventHandler {
     constructor(licenseClient) {
@@ -226,8 +227,12 @@ class EventHandler {
     }
 
     isLicenseKey(text) {
-        // Simple license key validation
-        return text.length === 32 && /^[A-Z0-9]+$/.test(text);
+        try {
+            Validator.validateLicenseKey(text);
+            return true;
+        } catch (_err) {
+            return false;
+        }
     }
 
     async handleAdminStats(ctx) {
