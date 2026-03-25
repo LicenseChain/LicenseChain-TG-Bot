@@ -75,9 +75,17 @@ bot.on('error', (error) => {
   logger.error('Telegram bot error:', error);
 });
 
+// Guard against duplicate initialization on serverless reuse / hot reload.
+let initializeBotStarted = false;
+let initializeBotPromise = null;
+
 // Initialize bot
 async function initializeBot() {
-  try {
+  if (initializeBotStarted) return;
+  if (initializeBotPromise) return initializeBotPromise;
+
+  initializeBotPromise = (async () => {
+    try {
     if (!process.env.TELEGRAM_TOKEN) {
       logger.error('TELEGRAM_TOKEN is required. Set it in .env or environment.');
       process.exit(1);
@@ -114,11 +122,17 @@ async function initializeBot() {
     ]);
     
     logger.info('LicenseChain Telegram Bot is ready!');
-  } catch (error) {
-    logger.error('Failed to initialize bot:', error);
-    if (process.env.VERCEL) throw error;
-    process.exit(1);
-  }
+      initializeBotStarted = true;
+    } catch (error) {
+      logger.error('Failed to initialize bot:', error);
+      if (process.env.VERCEL) throw error;
+      process.exit(1);
+    } finally {
+      initializeBotPromise = null;
+    }
+  })();
+
+  return initializeBotPromise;
 }
 
 // Error handling
