@@ -171,6 +171,9 @@ The bot client (`src/client/LicenseChainClient.js`) targets API v1-style routes,
 - `GET /v1/apps/:id/licenses`
 - `GET /health`
 
+## Vendored API normalize helper
+Both bots vendor an identical `src/client/licensechainApiNormalize.js` module to keep Docker builds self-contained (no shared module path). If the normalization logic changes, update both files to be byte-identical.
+
 ## Health Endpoints
 
 - `GET /health` - process status, uptime, version
