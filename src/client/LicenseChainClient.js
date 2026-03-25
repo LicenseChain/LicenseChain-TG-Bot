@@ -54,9 +54,9 @@ class LicenseChainClient {
         key: licenseKey,
         hardwareId: hardwareId || 'telegram-bot'
       });
-      return response.data;
+      return normalizeVerifyPayload(response.data);
     } catch (error) {
-      throw new Error(`License validation failed: ${error.response?.data?.message || error.message}`);
+      throw normalizeAxiosError(error, 'License validation failed');
     }
   }
 
