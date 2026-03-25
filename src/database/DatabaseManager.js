@@ -65,12 +65,12 @@ class DatabaseManager {
 
   async _query(text, values) {
     try {
-      return await this._query(text, values);
+      return await this.pool.query(text, values);
     } catch (err) {
     if (this._isConnectionError(err)) {
       this.logger.warn('Connection error, reconnecting:', err.code || err.message);
       await this._reconnect();
-      return await this._query(text, values);
+      return await this.pool.query(text, values);
     }
     throw err;
     }
