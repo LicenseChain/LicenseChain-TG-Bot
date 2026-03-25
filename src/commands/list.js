@@ -3,6 +3,8 @@
  * Supports both /m licenses and /list commands
  */
 
+const { getLinkedUser } = require('../client/DashboardClient');
+
 module.exports = {
   name: 'list',
   description: 'List user licenses',
@@ -64,6 +66,22 @@ module.exports = {
         } catch (apiError) {
           console.error('Error fetching licenses:', apiError.message);
         }
+      }
+
+      // Prevent app-wide license leakage: scope to the caller via Dashboard-linked email.
+      // If the user is not linked (or email missing), show an empty list.
+      const linked = await getLinkedUser(userId, { platform: 'telegram' });
+      const linkedEmail = (linked && linked.email ? String(linked.email) : '').trim().toLowerCase();
+      if (!linkedEmail) {
+        licenses = [];
+      } else {
+        licenses = licenses.filter((license) => {
+          const issuedEmail = (license?.issuedEmail ? String(license.issuedEmail) : '')
+            .trim()
+            .toLowerCase();
+          const email = (license?.email ? String(license.email) : '').trim().toLowerCase();
+          return issuedEmail === linkedEmail || email === linkedEmail;
+        });
       }
 
       if (licenses.length === 0) {
