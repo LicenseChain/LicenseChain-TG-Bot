@@ -5,6 +5,13 @@
 const Validator = require('../utils/Validator');
 const PermissionManager = require('../utils/PermissionManager');
 
+const VALID_LICENSE_STATUS_MAP = {
+  active: 'ACTIVE',
+  revoked: 'REVOKED',
+  suspended: 'SUSPENDED',
+  expired: 'EXPIRED',
+};
+
 module.exports = {
   name: 'update',
   description: 'Update a license or ticket status (Admin only)',
@@ -36,6 +43,7 @@ module.exports = {
         '  `/update TKT-1234567890-ABC123 pending`\n' +
         '  `/update TKT-1234567890-ABC123 closed`\n\n' +
         'License Fields: status, plan, expiresAt, issuedTo, issuedEmail\n' +
+        'License Statuses: ACTIVE, REVOKED, SUSPENDED, EXPIRED\n' +
         'Ticket Statuses: open, pending, closed',
         { parse_mode: 'Markdown' }
       );
@@ -114,7 +122,13 @@ module.exports = {
       
       // Map field names
       if (field === 'status') {
-        updateData.status = value.toUpperCase();
+        const normalizedStatus = VALID_LICENSE_STATUS_MAP[String(value).trim().toLowerCase()];
+        if (!normalizedStatus) {
+          throw new Error(
+            'Invalid license status. Use one of: ACTIVE, REVOKED, SUSPENDED, EXPIRED.'
+          );
+        }
+        updateData.status = normalizedStatus;
       } else if (field === 'plan') {
         updateData.plan = value.toUpperCase();
       } else if (field === 'expiresat') {
