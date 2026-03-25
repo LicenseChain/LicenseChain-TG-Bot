@@ -187,8 +187,7 @@ class AdminCommand {
         try {
             let apps = [];
             try {
-                const response = await this.licenseClient.client.get('/v1/apps');
-                const allApps = response.data?.apps || response.data || [];
+                const allApps = await this.licenseClient.getApps();
                 apps = allApps.slice(0, 20);
             } catch (apiError) {
                 this.logger.warn('Could not fetch apps from API:', apiError.message);
@@ -220,8 +219,7 @@ class AdminCommand {
         try {
             let webhooks = [];
             try {
-                const response = await this.licenseClient.client.get('/v1/webhooks');
-                webhooks = response.data?.webhooks || response.data || [];
+                webhooks = await this.licenseClient.getWebhooks();
             } catch (apiError) {
                 this.logger.warn('Could not fetch webhooks from API:', apiError.message);
             }

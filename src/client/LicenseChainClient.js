@@ -364,6 +364,30 @@ class LicenseChainClient {
   }
 
   /**
+   * Get apps list (typed wrapper for admin commands).
+   */
+  async getApps() {
+    try {
+      const response = await this.client.get('/v1/apps');
+      return response.data?.apps || response.data || [];
+    } catch (error) {
+      throw new Error(`Failed to get apps: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Get configured webhooks (typed wrapper for admin commands).
+   */
+  async getWebhooks() {
+    try {
+      const response = await this.client.get('/v1/webhooks');
+      return response.data?.webhooks || response.data || [];
+    } catch (error) {
+      throw new Error(`Failed to get webhooks: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  /**
    * Send webhook notification
    */
   async sendWebhook(webhookUrl, data) {
