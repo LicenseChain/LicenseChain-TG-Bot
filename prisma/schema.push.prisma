@@ -1,0 +1,108 @@
+// Safe push schema for Telegram Bot only.
+// IMPORTANT:
+// - Uses TG_PRISMA_PUSH_URL (not DATABASE_URL).
+// - Intended for a TG-scoped database/schema only (for example: ...?schema=tg_bot).
+// - Do NOT point TG_PRISMA_PUSH_URL to the shared ecosystem public schema.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("TG_PRISMA_PUSH_URL")
+}
+
+model TgBotUser {
+  id          String   @id @default(cuid())
+  telegram_id BigInt   @unique
+  username    String?
+  first_name  String?
+  last_name   String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  commands      TgBotCommand[]
+  validations   TgBotValidation[]
+  user_settings TgBotUserSetting?
+  tickets       TgBotTicket[]
+
+  @@map("tg_bot_users")
+}
+
+model TgBotCommand {
+  id         String   @id @default(cuid())
+  user_id    String
+  command    String
+  created_at DateTime @default(now())
+
+  user TgBotUser @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([created_at])
+  @@map("tg_bot_commands")
+}
+
+model TgBotValidation {
+  id          String   @id @default(cuid())
+  user_id     String
+  license_key String
+  is_valid    Boolean
+  created_at  DateTime @default(now())
+
+  user TgBotUser @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([created_at])
+  @@map("tg_bot_validations")
+}
+
+model TgBotUserSetting {
+  id                    String   @id @default(cuid())
+  user_id               String   @unique
+  notifications_enabled Int      @default(1)
+  analytics_enabled     Int      @default(1)
+  language              String   @default("en")
+  updated_at            DateTime @updatedAt
+
+  user TgBotUser @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("tg_bot_user_settings")
+}
+
+model TgBotLicense {
+  id          String   @id @default(cuid())
+  user_id     String?
+  license_key String?
+  created_at  DateTime @default(now())
+
+  @@index([user_id])
+  @@map("tg_bot_licenses")
+}
+
+model TgBotTicket {
+  id          String   @id @default(cuid())
+  ticket_id   String   @unique
+  user_id     String
+  subject     String
+  description String?
+  status      String   @default("open")
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user TgBotUser @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([status])
+  @@index([created_at])
+  @@map("tg_bot_tickets")
+}
+
+model TgBotBotStatus {
+  id         String   @id @default(cuid())
+  status     String
+  updated_by String?
+  updated_at DateTime @updatedAt
+
+  @@map("tg_bot_bot_status")
+}

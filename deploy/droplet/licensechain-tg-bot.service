@@ -1,0 +1,28 @@
+[Unit]
+Description=LicenseChain Telegram Bot (Node.js)
+Documentation=https://github.com/LicenseChain/LicenseChain-TG-Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=licensechain
+Group=licensechain
+WorkingDirectory=/opt/LicenseChain-TG-Bot
+EnvironmentFile=-/opt/LicenseChain-TG-Bot/.env
+ExecStart=/usr/bin/node src/index.js
+Restart=always
+RestartSec=15
+TimeoutStopSec=30
+KillSignal=SIGINT
+
+# Logs: journalctl -u licensechain-tg-bot -f
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=licensechain-tg-bot
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
